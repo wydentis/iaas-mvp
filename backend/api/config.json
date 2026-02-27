@@ -1,0 +1,10 @@
+{
+  "port": 8080,
+  "jwt_secret": "${JWT_SECRET}",
+  "db_config": {
+    "user": "postgres",
+    "password": "postgres",
+    "db_name": "postgres",
+    "db_host": "localhost:5432"
+  }
+}
