@@ -33,7 +33,10 @@ func main() {
 	userHandler := handler.NewUserHandler(*userService)
 
 	mux := http.NewServeMux()
-	mux.Handle("/auth/", userHandler)
+
+	//auth
+	mux.HandleFunc("POST /auth/signup", userHandler.SignUp)
+	mux.HandleFunc("POST /auth/signin", userHandler.SignIn)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

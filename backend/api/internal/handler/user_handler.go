@@ -19,26 +19,6 @@ func NewUserHandler(s service.UserService) *UserHandler {
 	return &UserHandler{s}
 }
 
-func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/auth/signup" {
-		switch r.Method {
-		case http.MethodPost:
-			h.SignUp(w, r)
-		default:
-			json.Error(w, http.StatusMethodNotAllowed, "method not allowed")
-		}
-	} else if r.URL.Path == "/auth/signin" {
-		switch r.Method {
-		case http.MethodPost:
-			h.SignIn(w, r)
-		default:
-			json.Error(w, http.StatusMethodNotAllowed, "method not allowed")
-		}
-	} else {
-		json.Error(w, http.StatusNotFound, "endpoint not found")
-	}
-}
-
 func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 	req, err := json.Decode[models.SignUpRequest](r)
 	if err != nil {
