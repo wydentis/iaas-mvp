@@ -1,5 +1,7 @@
 package config
 
+// add config var, what accessible from code and static
+
 import (
 	"encoding/json"
 	"fmt"

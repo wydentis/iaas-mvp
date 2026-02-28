@@ -9,9 +9,15 @@ type User struct {
 	Surname      string    `json:"surname"`
 	Email        string    `json:"email"`
 	Phone        string    `json:"phone"`
-	PasswordHash string    `json:"password_hash"`
+	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type AuthResponse struct {
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresIn    time.Time `json:"expires_in"`
 }
 
 type SignUpRequest struct {
@@ -29,9 +35,4 @@ type SignInRequest struct {
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
 	Password string `json:"password"`
-}
-
-type AuthResponse struct {
-	Token string `json:"token"`
-	User  User   `json:"user"`
 }

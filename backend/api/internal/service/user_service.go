@@ -2,22 +2,29 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/wydentis/iaas-mvp/api/internal/auth"
 	"github.com/wydentis/iaas-mvp/api/internal/models"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
 )
 
+var (
+	ErrPasswordIncorrect = errors.New("password incorrect")
+)
+
 type UserService struct {
-	Repo repo.UserRepository
+	Repo     repo.UserRepository
+	JWTToken string
 }
 
-func NewUserService(r repo.UserRepository) *UserService {
-	return &UserService{r}
+func NewUserService(r repo.UserRepository, jwt string) *UserService {
+	return &UserService{r, jwt}
 }
 
-func (s *UserService) SignUp(ctx context.Context, req models.SignUpRequest) (*models.User, error) {
+func (s *UserService) SignUp(ctx context.Context, req models.SignUpRequest) (*models.AuthResponse, error) {
 	hashedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
 		slog.Error("failed to hash password", "error", err)
@@ -39,5 +46,41 @@ func (s *UserService) SignUp(ctx context.Context, req models.SignUpRequest) (*mo
 	}
 
 	slog.Info("user registered successfully", "user_id", user.ID)
-	return user, nil
+
+	return s.generateTokens(user.ID)
+}
+
+func (s *UserService) SignIn(ctx context.Context, req models.SignInRequest) (*models.AuthResponse, error) {
+	user := &models.User{}
+	var err error
+	if req.Username != "" {
+		user, err = s.Repo.GetUserByUsername(ctx, req.Username)
+	} else if req.Email != "" {
+		user, err = s.Repo.GetUserByEmail(ctx, req.Email)
+	} else if req.Phone != "" {
+		user, err = s.Repo.GetUserByPhone(ctx, req.Phone)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if auth.CheckPasswordHash(req.Password, user.PasswordHash) {
+		return s.generateTokens(user.ID)
+	}
+
+	return nil, ErrPasswordIncorrect
+}
+
+func (s *UserService) generateTokens(userID string) (*models.AuthResponse, error) {
+	accessToken, refreshToken, err := auth.GenerateTokens(userID, s.JWTToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    time.Now().Add(15 * time.Minute),
+	}, nil
 }

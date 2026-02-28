@@ -27,6 +27,13 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.Error(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
+	} else if r.URL.Path == "/auth/signin" {
+		switch r.Method {
+		case http.MethodPost:
+			h.SignIn(w, r)
+		default:
+			json.Error(w, http.StatusMethodNotAllowed, "method not allowed")
+		}
 	} else {
 		json.Error(w, http.StatusNotFound, "endpoint not found")
 	}
@@ -44,7 +51,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Service.SignUp(r.Context(), req)
+	cred, err := h.Service.SignUp(r.Context(), req)
 	if errors.Is(err, repo.ErrUserAlreadyExists) {
 		json.Error(w, http.StatusConflict, "user already exists")
 		return
@@ -54,5 +61,28 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.Encode(w, http.StatusCreated, user)
+	json.Encode(w, http.StatusCreated, cred)
+}
+
+func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
+	req, err := json.Decode[models.SignInRequest](r)
+	if err != nil {
+		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	cred, err := h.Service.SignIn(r.Context(), req)
+	if errors.Is(err, repo.ErrUserNotFound) {
+		json.Error(w, http.StatusNotFound, "user not found")
+		return
+	} else if errors.Is(err, service.ErrPasswordIncorrect) {
+		json.Error(w, http.StatusUnauthorized, "incorrect password")
+		return
+	} else if err != nil {
+		slog.Error("sign in failed", "error", err)
+		json.Error(w, http.StatusInternalServerError, "registration error")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, cred)
 }

@@ -29,7 +29,7 @@ func main() {
 	defer db.Close()
 
 	userRepo := repo.NewUserRepository(*db)
-	userService := service.NewUserService(*userRepo)
+	userService := service.NewUserService(*userRepo, cfg.JWTSecret)
 	userHandler := handler.NewUserHandler(*userService)
 
 	mux := http.NewServeMux()
