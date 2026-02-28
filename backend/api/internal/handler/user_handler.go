@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/wydentis/iaas-mvp/api/internal/auth"
 	"github.com/wydentis/iaas-mvp/api/internal/json"
 	"github.com/wydentis/iaas-mvp/api/internal/models"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
@@ -103,4 +104,69 @@ func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Encode(w, http.StatusOK, userInfo)
+}
+
+func (h *UserHandler) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		slog.Error("failed to get userID from request context")
+		json.Error(w, http.StatusInternalServerError, "failed to get token")
+		return
+	}
+
+	userUpdate, err := json.Decode[models.UserInfo](r)
+	if err != nil {
+		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	userInfo, err := h.Service.UpdateUserInfo(r.Context(), userID, userUpdate)
+	if errors.Is(err, repo.ErrUserAlreadyExists) {
+		json.Error(w, http.StatusConflict, "user already exists")
+		return
+	} else if err != nil {
+		json.Error(w, http.StatusInternalServerError, "failed to update user info")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, userInfo)
+}
+
+func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		slog.Error("failed to get userID from request context")
+		json.Error(w, http.StatusInternalServerError, "failed to get token")
+		return
+	}
+
+	psws, err := json.Decode[models.UserUpdatePasswordRequest](r)
+	if err != nil {
+		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if psws.Password != psws.PasswordConfirm {
+		json.Error(w, http.StatusBadRequest, "passwords do not match")
+		return
+	}
+
+	hashPassword, err := auth.HashPassword(psws.Password)
+	if err != nil {
+		slog.Error("failed to update user info", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to update user info")
+		return
+	}
+
+	err = h.Service.UpdatePassword(r.Context(), userID, hashPassword)
+	if errors.Is(err, repo.ErrUserNotFound) {
+		json.Error(w, http.StatusNotFound, "user not found")
+		return
+	} else if err != nil {
+		slog.Error("failed to update user info", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to update user info")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, "")
 }

@@ -153,3 +153,47 @@ func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*mod
 
 	return user, err
 }
+
+func (r *UserRepository) UpdateUserInfo(ctx context.Context, user *models.User) (*models.User, error) {
+	query := `
+		UPDATE users
+		SET name = $2, surname = $3, email = $4, phone = $5, updated_at = NOW()
+		WHERE user_id = $1
+		RETURNING updated_at
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query,
+		user.ID,
+		user.Name,
+		user.Surname,
+		user.Email,
+		user.Phone,
+	).Scan(&user.UpdatedAt)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrUserAlreadyExists
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = $2, updated_at = NOW()
+		WHERE user_id = $1
+	`
+	commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, passwordHash)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}

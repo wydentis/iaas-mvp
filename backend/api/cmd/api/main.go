@@ -42,6 +42,8 @@ func main() {
 
 	// user
 	mux.HandleFunc("GET /user", middleware.AuthMiddleware(userHandler.GetUserInfo, cfg.JWTSecret))
+	mux.HandleFunc("PUT /user/info", middleware.AuthMiddleware(userHandler.UpdateUserInfo, cfg.JWTSecret))
+	mux.HandleFunc("PUT /user/pass", middleware.AuthMiddleware(userHandler.UpdatePassword, cfg.JWTSecret))
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

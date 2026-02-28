@@ -72,19 +72,48 @@ func (s *UserService) SignIn(ctx context.Context, req models.SignInRequest) (*mo
 	return nil, ErrPasswordIncorrect
 }
 
-func (s *UserService) GetUserInfo(ctx context.Context, userID string) (*models.UserInfoResponse, error) {
+func (s *UserService) GetUserInfo(ctx context.Context, userID string) (*models.UserInfo, error) {
 	user, err := s.Repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &models.UserInfoResponse{
+	return &models.UserInfo{
 		Username: user.Username,
 		Name:     user.Name,
 		Surname:  user.Surname,
 		Email:    user.Email,
 		Phone:    user.Phone,
 	}, nil
+}
+
+func (s *UserService) UpdateUserInfo(ctx context.Context, userID string, req models.UserInfo) (*models.UserInfo, error) {
+	user := &models.User{
+		ID:       userID,
+		Username: req.Username,
+		Name:     req.Name,
+		Surname:  req.Surname,
+		Email:    req.Email,
+		Phone:    req.Phone,
+	}
+
+	user, err := s.Repo.UpdateUserInfo(ctx, user)
+	if err != nil {
+		slog.Error("failed to save user", "username", req.Username, "error", err)
+		return nil, err
+	}
+
+	return &models.UserInfo{
+		Username: user.Username,
+		Name:     user.Name,
+		Surname:  user.Surname,
+		Email:    user.Email,
+		Phone:    user.Phone,
+	}, nil
+}
+
+func (s *UserService) UpdatePassword(ctx context.Context, userID, password string) error {
+	return s.Repo.UpdatePassword(ctx, userID, password)
 }
 
 func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshRequest) (*models.AuthResponse, error) {

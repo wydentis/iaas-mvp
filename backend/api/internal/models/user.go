@@ -41,10 +41,15 @@ type AuthResponse struct {
 	ExpiresIn    time.Time `json:"expires_in"`
 }
 
-type UserInfoResponse struct {
+type UserInfo struct {
 	Username string `json:"username"`
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
+}
+
+type UserUpdatePasswordRequest struct {
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"password_confirm"`
 }
