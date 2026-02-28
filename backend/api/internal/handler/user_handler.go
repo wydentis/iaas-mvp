@@ -66,3 +66,41 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	json.Encode(w, http.StatusOK, cred)
 }
+
+func (h *UserHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	req, err := json.Decode[models.RefreshRequest](r)
+	if err != nil {
+		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	cred, err := h.Service.RefreshToken(r.Context(), req)
+	if err != nil {
+		slog.Error("refresh failed", "error", err)
+		json.Error(w, http.StatusUnauthorized, "invalid refresh token")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, cred)
+}
+
+func (h *UserHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		slog.Error("failed to get userID from request context")
+		json.Error(w, http.StatusInternalServerError, "failed to get token")
+		return
+	}
+
+	userInfo, err := h.Service.GetUserInfo(r.Context(), userID)
+	if errors.Is(err, repo.ErrUserNotFound) {
+		json.Error(w, http.StatusNotFound, "user not found")
+		return
+	} else if err != nil {
+		slog.Error("failed to get user info", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to get user info")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, userInfo)
+}

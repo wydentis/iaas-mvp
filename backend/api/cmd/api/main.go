@@ -9,6 +9,7 @@ import (
 
 	"github.com/wydentis/iaas-mvp/api/internal/config"
 	"github.com/wydentis/iaas-mvp/api/internal/handler"
+	"github.com/wydentis/iaas-mvp/api/internal/middleware"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
 	"github.com/wydentis/iaas-mvp/api/internal/service"
 	"github.com/wydentis/iaas-mvp/api/internal/storage"
@@ -34,9 +35,13 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	//auth
+	// auth
 	mux.HandleFunc("POST /auth/signup", userHandler.SignUp)
 	mux.HandleFunc("POST /auth/signin", userHandler.SignIn)
+	mux.HandleFunc("POST /auth/refresh", userHandler.RefreshToken)
+
+	// user
+	mux.HandleFunc("GET /user", middleware.AuthMiddleware(userHandler.GetUserInfo, cfg.JWTSecret))
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

@@ -7,13 +7,15 @@ import (
 )
 
 type Claims struct {
-	UserID string `json:"user_id"`
+	UserID    string `json:"user_id"`
+	TokenType string `json:"token_type"`
 	jwt.RegisteredClaims
 }
 
 func GenerateTokens(userID string, secret string) (string, string, error) {
 	accessClaims := &Claims{
-		UserID: userID,
+		UserID:    userID,
+		TokenType: "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -26,7 +28,8 @@ func GenerateTokens(userID string, secret string) (string, string, error) {
 	}
 
 	refreshClaims := &Claims{
-		UserID: userID,
+		UserID:    userID,
+		TokenType: "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -41,7 +44,7 @@ func GenerateTokens(userID string, secret string) (string, string, error) {
 	return accessTokenString, refreshTokenString, nil
 }
 
-func ValidateToken(tokenString string, secret string) (*Claims, error) {
+func ValidateToken(tokenString string, secret string, expectedType string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) { return []byte(secret), nil })
 
 	if err != nil {
@@ -49,6 +52,9 @@ func ValidateToken(tokenString string, secret string) (*Claims, error) {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		if claims.TokenType != expectedType {
+			return nil, jwt.ErrTokenInvalidClaims
+		}
 		return claims, nil
 	}
 

@@ -72,6 +72,35 @@ func (s *UserService) SignIn(ctx context.Context, req models.SignInRequest) (*mo
 	return nil, ErrPasswordIncorrect
 }
 
+func (s *UserService) GetUserInfo(ctx context.Context, userID string) (*models.UserInfoResponse, error) {
+	user, err := s.Repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.UserInfoResponse{
+		Username: user.Username,
+		Name:     user.Name,
+		Surname:  user.Surname,
+		Email:    user.Email,
+		Phone:    user.Phone,
+	}, nil
+}
+
+func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshRequest) (*models.AuthResponse, error) {
+	claims, err := auth.ValidateToken(req.RefreshToken, s.JWTToken, "refresh")
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.Repo.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.generateTokens(user.ID)
+}
+
 func (s *UserService) generateTokens(userID string) (*models.AuthResponse, error) {
 	accessToken, refreshToken, err := auth.GenerateTokens(userID, s.JWTToken)
 	if err != nil {
