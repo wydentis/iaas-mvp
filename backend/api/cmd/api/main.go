@@ -35,6 +35,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	// healthcheck
+	mux.HandleFunc("GET /health", handler.HealthCheck)
+
 	// auth
 	mux.HandleFunc("POST /auth/signup", userHandler.SignUp)
 	mux.HandleFunc("POST /auth/signin", userHandler.SignIn)
