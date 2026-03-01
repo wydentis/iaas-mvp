@@ -41,9 +41,11 @@ func main() {
 	mux.HandleFunc("POST /auth/refresh", userHandler.RefreshToken)
 
 	// user
-	mux.HandleFunc("GET /user", middleware.AuthMiddleware(userHandler.GetUserInfo, cfg.JWTSecret))
+	mux.HandleFunc("GET /user/info", middleware.AuthMiddleware(userHandler.GetUserInfo, cfg.JWTSecret))
 	mux.HandleFunc("PUT /user/info", middleware.AuthMiddleware(userHandler.UpdateUserInfo, cfg.JWTSecret))
 	mux.HandleFunc("PUT /user/pass", middleware.AuthMiddleware(userHandler.UpdatePassword, cfg.JWTSecret))
+	mux.HandleFunc("GET /user/balance", middleware.AuthMiddleware(userHandler.GetBalance, cfg.JWTSecret))
+	mux.HandleFunc("PUT /user/balance", middleware.AuthMiddleware(userHandler.ChangeBalance, cfg.JWTSecret))
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

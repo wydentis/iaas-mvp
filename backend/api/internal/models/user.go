@@ -9,6 +9,7 @@ type User struct {
 	Surname      string    `json:"surname"`
 	Email        string    `json:"email"`
 	Phone        string    `json:"phone"`
+	Balance      int       `json:"balance"`
 	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -52,4 +53,8 @@ type UserInfo struct {
 type UserUpdatePasswordRequest struct {
 	Password        string `json:"password"`
 	PasswordConfirm string `json:"password_confirm"`
+}
+
+type UserBalance struct {
+	Amount int `json:"amount"`
 }

@@ -64,6 +64,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, userID string) (*model
 		&user.Surname,
 		&user.Email,
 		&user.Phone,
+		&user.Balance,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -90,6 +91,7 @@ func (r *UserRepository) GetUserByUsername(ctx context.Context, username string)
 		&user.Surname,
 		&user.Email,
 		&user.Phone,
+		&user.Balance,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -116,6 +118,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		&user.Surname,
 		&user.Email,
 		&user.Phone,
+		&user.Balance,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -142,6 +145,7 @@ func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*mod
 		&user.Surname,
 		&user.Email,
 		&user.Phone,
+		&user.Balance,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -187,6 +191,43 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, userID string, pass
 		WHERE user_id = $1
 	`
 	commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, passwordHash)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (r *UserRepository) GetBalance(ctx context.Context, userID string) (*models.UserBalance, error) {
+	query := `
+		SELECT balance
+		FROM users
+		WHERE user_id = $1
+	`
+
+	var balance models.UserBalance
+	err := r.Storage.Pool.QueryRow(ctx, query, userID).Scan(&balance.Amount)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &balance, nil
+}
+
+func (r *UserRepository) ChangeBalance(ctx context.Context, userID string, amount int) error {
+	query := `
+		UPDATE users
+		SET balance = balance + $2, updated_at = NOW()
+		WHERE user_id = $1
+	`
+	commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, amount)
 	if err != nil {
 		return err
 	}

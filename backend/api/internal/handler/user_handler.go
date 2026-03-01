@@ -170,3 +170,48 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	json.Encode(w, http.StatusOK, "")
 }
+
+func (h *UserHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		slog.Error("failed to get userID from request context")
+		json.Error(w, http.StatusInternalServerError, "failed to get token")
+		return
+	}
+
+	userBalance, err := h.Service.GetBalance(r.Context(), userID)
+	if errors.Is(err, repo.ErrUserNotFound) {
+		json.Error(w, http.StatusNotFound, "user not found")
+	} else if err != nil {
+		slog.Error("failed to get user balance", "error", err)
+	}
+
+	json.Encode(w, http.StatusOK, userBalance)
+}
+
+func (h *UserHandler) ChangeBalance(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		slog.Error("failed to get userID from request context")
+		json.Error(w, http.StatusInternalServerError, "failed to get token")
+		return
+	}
+
+	req, err := json.Decode[models.UserBalance](r)
+	if err != nil {
+		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	err = h.Service.ChangeBalance(r.Context(), userID, req.Amount)
+	if errors.Is(err, repo.ErrUserNotFound) {
+		json.Error(w, http.StatusNotFound, "user not found")
+		return
+	} else if err != nil {
+		slog.Error("failed to update user info", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to update user info")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, "")
+}

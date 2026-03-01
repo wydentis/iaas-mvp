@@ -116,6 +116,14 @@ func (s *UserService) UpdatePassword(ctx context.Context, userID, password strin
 	return s.Repo.UpdatePassword(ctx, userID, password)
 }
 
+func (s *UserService) GetBalance(ctx context.Context, userID string) (*models.UserBalance, error) {
+	return s.Repo.GetBalance(ctx, userID)
+}
+
+func (s *UserService) ChangeBalance(ctx context.Context, userID string, amount int) error {
+	return s.Repo.ChangeBalance(ctx, userID, amount)
+}
+
 func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshRequest) (*models.AuthResponse, error) {
 	claims, err := auth.ValidateToken(req.RefreshToken, s.JWTToken, "refresh")
 	if err != nil {
