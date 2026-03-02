@@ -1,0 +1,29 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.2.4-management-alpine
+    container_name: rabbit-server
+    ports:
+      - "5672:5672"   # RabbitMQ communication port
+      - "15672:15672" # Management UI (Username/Pass: guest/guest)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  python_app:
+    build: ./recommendation-service
+    container_name: python_worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_MODEL_NAME=gemini-2.5-flash
+      - REQUEST_QUEUE_NAME=${REQUEST_QUEUE_NAME}
+      - RESPONSE_QUEUE_NAME=ai_response
+    restart: always
