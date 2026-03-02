@@ -21,9 +21,8 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - RABBITMQ_URL=${RABBITMQ_URL}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - AI_MODEL_NAME=gemini-2.5-flash
-      - REQUEST_QUEUE_NAME=${REQUEST_QUEUE_NAME}
-      - RESPONSE_QUEUE_NAME=ai_response
+      - QUEUE_NAME=${QUEUE_NAME}
     restart: always

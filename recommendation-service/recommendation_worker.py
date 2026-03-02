@@ -4,18 +4,16 @@ import logging
 import aio_pika
 import os
 from contextlib import asynccontextmanager
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from google import genai
 
-load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Config
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 RABBITMQ_URL = os.environ.get('RABBITMQ_URL', "amqp://guest:guest@localhost/")
-QUEUE_NAME = os.environ.get("REQUEST_QUEUE_NAME")
+QUEUE_NAME = os.environ.get("QUEUE_NAME")
 
 class HardwareWorker:
     def __init__(self):
