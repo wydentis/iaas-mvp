@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "recommendation_worker.py"]
+CMD ["python", "ai_consult_worker.py"]
