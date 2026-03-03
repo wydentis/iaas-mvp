@@ -38,7 +38,7 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		slog.Error("Registration failed", "error", err)
-		json.Error(w, http.StatusInternalServerError, "registration failed")
+		json.Error(w, http.StatusInternalServerError, "sign up failed")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		slog.Error("sign in failed", "error", err)
-		json.Error(w, http.StatusInternalServerError, "registration error")
+		json.Error(w, http.StatusInternalServerError, "sign in in error")
 		return
 	}
 
@@ -214,4 +214,32 @@ func (h *UserHandler) ChangeBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Encode(w, http.StatusOK, "")
+}
+
+func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.Service.ListUsers(r.Context())
+	if err != nil {
+		slog.Error("failed to list users", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to list users")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, users)
+}
+
+func (h *UserHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("query")
+	if query == "" {
+		json.Error(w, http.StatusBadRequest, "query parameter is required")
+		return
+	}
+
+	users, err := h.Service.SearchUsers(r.Context(), query)
+	if err != nil {
+		slog.Error("failed to search users", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to search users")
+		return
+	}
+
+	json.Encode(w, http.StatusOK, users)
 }

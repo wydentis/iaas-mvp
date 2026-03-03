@@ -25,10 +25,14 @@ func NewUserRepository(stg storage.Storage) *UserRepository {
 
 func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) error {
 	query := `
-		INSERT INTO users (username, name, surname, email, phone, password_hash)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO users (username, name, surname, email, phone, password_hash, role)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING user_id, created_at, updated_at
 	`
+
+	if user.Role == "" {
+		user.Role = "user"
+	}
 
 	err := r.Storage.Pool.QueryRow(ctx, query,
 		user.Username,
@@ -37,6 +41,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 		user.Email,
 		user.Phone,
 		user.PasswordHash,
+		user.Role,
 	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
@@ -65,6 +70,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, userID string) (*model
 		&user.Email,
 		&user.Phone,
 		&user.Balance,
+		&user.Role,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -92,6 +98,7 @@ func (r *UserRepository) GetUserByUsername(ctx context.Context, username string)
 		&user.Email,
 		&user.Phone,
 		&user.Balance,
+		&user.Role,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -119,6 +126,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*mod
 		&user.Email,
 		&user.Phone,
 		&user.Balance,
+		&user.Role,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -146,6 +154,7 @@ func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*mod
 		&user.Email,
 		&user.Phone,
 		&user.Balance,
+		&user.Role,
 		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -237,4 +246,78 @@ func (r *UserRepository) ChangeBalance(ctx context.Context, userID string, amoun
 	}
 
 	return nil
+}
+
+func (r *UserRepository) ListUsers(ctx context.Context) ([]*models.User, error) {
+	query := `
+		SELECT *
+		FROM users
+	`
+	rows, err := r.Storage.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Phone,
+			&user.Balance,
+			&user.Role,
+			&user.PasswordHash,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) SearchUsers(ctx context.Context, query string) ([]*models.User, error) {
+	sql := `
+		SELECT *
+		FROM users
+		WHERE username ILIKE $1 OR name ILIKE $1 OR surname ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1
+	`
+	pattern := "%" + query + "%"
+	rows, err := r.Storage.Pool.Query(ctx, sql, pattern)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Phone,
+			&user.Balance,
+			&user.Role,
+			&user.PasswordHash,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }

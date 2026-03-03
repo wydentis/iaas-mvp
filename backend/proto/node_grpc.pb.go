@@ -19,7 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NodeService_CreateVPS_FullMethodName = "/node.NodeService/CreateVPS"
+	NodeService_CreateVPS_FullMethodName         = "/node.NodeService/CreateVPS"
+	NodeService_GetVPS_FullMethodName            = "/node.NodeService/GetVPS"
+	NodeService_SetVPSStatus_FullMethodName      = "/node.NodeService/SetVPSStatus"
+	NodeService_DeleteVPS_FullMethodName         = "/node.NodeService/DeleteVPS"
+	NodeService_UpdateVPS_FullMethodName         = "/node.NodeService/UpdateVPS"
+	NodeService_RunCommand_FullMethodName        = "/node.NodeService/RunCommand"
+	NodeService_CreatePortMapping_FullMethodName = "/node.NodeService/CreatePortMapping"
+	NodeService_GetPortMappings_FullMethodName   = "/node.NodeService/GetPortMappings"
+	NodeService_UpdatePortMapping_FullMethodName = "/node.NodeService/UpdatePortMapping"
+	NodeService_DeletePortMapping_FullMethodName = "/node.NodeService/DeletePortMapping"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -27,6 +36,15 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NodeServiceClient interface {
 	CreateVPS(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	GetVPS(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	SetVPSStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error)
+	DeleteVPS(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	UpdateVPS(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	RunCommand(ctx context.Context, in *RunCommandRequest, opts ...grpc.CallOption) (*RunCommandResponse, error)
+	CreatePortMapping(ctx context.Context, in *CreatePortMappingRequest, opts ...grpc.CallOption) (*CreatePortMappingResponse, error)
+	GetPortMappings(ctx context.Context, in *GetPortMappingsRequest, opts ...grpc.CallOption) (*GetPortMappingsResponse, error)
+	UpdatePortMapping(ctx context.Context, in *UpdatePortMappingRequest, opts ...grpc.CallOption) (*UpdatePortMappingResponse, error)
+	DeletePortMapping(ctx context.Context, in *DeletePortMappingRequest, opts ...grpc.CallOption) (*DeletePortMappingResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -47,11 +65,110 @@ func (c *nodeServiceClient) CreateVPS(ctx context.Context, in *CreateRequest, op
 	return out, nil
 }
 
+func (c *nodeServiceClient) GetVPS(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, NodeService_GetVPS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) SetVPSStatus(ctx context.Context, in *SetStatusRequest, opts ...grpc.CallOption) (*SetStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetStatusResponse)
+	err := c.cc.Invoke(ctx, NodeService_SetVPSStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) DeleteVPS(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteResponse)
+	err := c.cc.Invoke(ctx, NodeService_DeleteVPS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) UpdateVPS(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, NodeService_UpdateVPS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) RunCommand(ctx context.Context, in *RunCommandRequest, opts ...grpc.CallOption) (*RunCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RunCommandResponse)
+	err := c.cc.Invoke(ctx, NodeService_RunCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) CreatePortMapping(ctx context.Context, in *CreatePortMappingRequest, opts ...grpc.CallOption) (*CreatePortMappingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePortMappingResponse)
+	err := c.cc.Invoke(ctx, NodeService_CreatePortMapping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) GetPortMappings(ctx context.Context, in *GetPortMappingsRequest, opts ...grpc.CallOption) (*GetPortMappingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPortMappingsResponse)
+	err := c.cc.Invoke(ctx, NodeService_GetPortMappings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) UpdatePortMapping(ctx context.Context, in *UpdatePortMappingRequest, opts ...grpc.CallOption) (*UpdatePortMappingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePortMappingResponse)
+	err := c.cc.Invoke(ctx, NodeService_UpdatePortMapping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) DeletePortMapping(ctx context.Context, in *DeletePortMappingRequest, opts ...grpc.CallOption) (*DeletePortMappingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePortMappingResponse)
+	err := c.cc.Invoke(ctx, NodeService_DeletePortMapping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
 type NodeServiceServer interface {
 	CreateVPS(context.Context, *CreateRequest) (*CreateResponse, error)
+	GetVPS(context.Context, *GetRequest) (*GetResponse, error)
+	SetVPSStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error)
+	DeleteVPS(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	UpdateVPS(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	RunCommand(context.Context, *RunCommandRequest) (*RunCommandResponse, error)
+	CreatePortMapping(context.Context, *CreatePortMappingRequest) (*CreatePortMappingResponse, error)
+	GetPortMappings(context.Context, *GetPortMappingsRequest) (*GetPortMappingsResponse, error)
+	UpdatePortMapping(context.Context, *UpdatePortMappingRequest) (*UpdatePortMappingResponse, error)
+	DeletePortMapping(context.Context, *DeletePortMappingRequest) (*DeletePortMappingResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -64,6 +181,33 @@ type UnimplementedNodeServiceServer struct{}
 
 func (UnimplementedNodeServiceServer) CreateVPS(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateVPS not implemented")
+}
+func (UnimplementedNodeServiceServer) GetVPS(context.Context, *GetRequest) (*GetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetVPS not implemented")
+}
+func (UnimplementedNodeServiceServer) SetVPSStatus(context.Context, *SetStatusRequest) (*SetStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetVPSStatus not implemented")
+}
+func (UnimplementedNodeServiceServer) DeleteVPS(context.Context, *DeleteRequest) (*DeleteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteVPS not implemented")
+}
+func (UnimplementedNodeServiceServer) UpdateVPS(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateVPS not implemented")
+}
+func (UnimplementedNodeServiceServer) RunCommand(context.Context, *RunCommandRequest) (*RunCommandResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RunCommand not implemented")
+}
+func (UnimplementedNodeServiceServer) CreatePortMapping(context.Context, *CreatePortMappingRequest) (*CreatePortMappingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePortMapping not implemented")
+}
+func (UnimplementedNodeServiceServer) GetPortMappings(context.Context, *GetPortMappingsRequest) (*GetPortMappingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPortMappings not implemented")
+}
+func (UnimplementedNodeServiceServer) UpdatePortMapping(context.Context, *UpdatePortMappingRequest) (*UpdatePortMappingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePortMapping not implemented")
+}
+func (UnimplementedNodeServiceServer) DeletePortMapping(context.Context, *DeletePortMappingRequest) (*DeletePortMappingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePortMapping not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -104,6 +248,168 @@ func _NodeService_CreateVPS_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_GetVPS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).GetVPS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_GetVPS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).GetVPS(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_SetVPSStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).SetVPSStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_SetVPSStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).SetVPSStatus(ctx, req.(*SetStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_DeleteVPS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).DeleteVPS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_DeleteVPS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).DeleteVPS(ctx, req.(*DeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_UpdateVPS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).UpdateVPS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_UpdateVPS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).UpdateVPS(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_RunCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RunCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).RunCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_RunCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).RunCommand(ctx, req.(*RunCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_CreatePortMapping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePortMappingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).CreatePortMapping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_CreatePortMapping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).CreatePortMapping(ctx, req.(*CreatePortMappingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_GetPortMappings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPortMappingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).GetPortMappings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_GetPortMappings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).GetPortMappings(ctx, req.(*GetPortMappingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_UpdatePortMapping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePortMappingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).UpdatePortMapping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_UpdatePortMapping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).UpdatePortMapping(ctx, req.(*UpdatePortMappingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_DeletePortMapping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePortMappingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).DeletePortMapping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_DeletePortMapping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).DeletePortMapping(ctx, req.(*DeletePortMappingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +420,42 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateVPS",
 			Handler:    _NodeService_CreateVPS_Handler,
+		},
+		{
+			MethodName: "GetVPS",
+			Handler:    _NodeService_GetVPS_Handler,
+		},
+		{
+			MethodName: "SetVPSStatus",
+			Handler:    _NodeService_SetVPSStatus_Handler,
+		},
+		{
+			MethodName: "DeleteVPS",
+			Handler:    _NodeService_DeleteVPS_Handler,
+		},
+		{
+			MethodName: "UpdateVPS",
+			Handler:    _NodeService_UpdateVPS_Handler,
+		},
+		{
+			MethodName: "RunCommand",
+			Handler:    _NodeService_RunCommand_Handler,
+		},
+		{
+			MethodName: "CreatePortMapping",
+			Handler:    _NodeService_CreatePortMapping_Handler,
+		},
+		{
+			MethodName: "GetPortMappings",
+			Handler:    _NodeService_GetPortMappings_Handler,
+		},
+		{
+			MethodName: "UpdatePortMapping",
+			Handler:    _NodeService_UpdatePortMapping_Handler,
+		},
+		{
+			MethodName: "DeletePortMapping",
+			Handler:    _NodeService_DeletePortMapping_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

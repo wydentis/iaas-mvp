@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -33,6 +34,27 @@ func main() {
 	userService := service.NewUserService(*userRepo, cfg.JWTSecret)
 	userHandler := handler.NewUserHandler(*userService)
 
+	nodeRepo := repo.NewNodeRepository(*db)
+	nodeManager := service.NewNodeManager(nodeRepo)
+	if err := nodeManager.Init(context.Background()); err != nil {
+		slog.Error("failed to init node manager", "err", err)
+		os.Exit(1)
+	}
+	defer nodeManager.Close()
+
+	containerRepo := repo.NewContainerRepository(*db)
+	containerService := service.NewContainerService(*containerRepo, nodeManager)
+	containerHandler := handler.NewContainerHandler(*containerService)
+
+	nodeService := service.NewNodeService(nodeRepo, nodeManager)
+	nodeHandler := handler.NewNodeHandler(nodeService)
+
+	portMappingRepo := repo.NewPortMappingRepository(*db)
+	portMappingService := service.NewPortMappingService(portMappingRepo, containerRepo, nodeManager)
+	portMappingHandler := handler.NewPortMappingHandler(portMappingService)
+
+	wsHandler := handler.NewWebSocketHandler(containerService)
+
 	mux := http.NewServeMux()
 
 	// healthcheck
@@ -49,6 +71,40 @@ func main() {
 	mux.HandleFunc("PUT /user/pass", middleware.AuthMiddleware(userHandler.UpdatePassword, cfg.JWTSecret))
 	mux.HandleFunc("GET /user/balance", middleware.AuthMiddleware(userHandler.GetBalance, cfg.JWTSecret))
 	mux.HandleFunc("PUT /user/balance", middleware.AuthMiddleware(userHandler.ChangeBalance, cfg.JWTSecret))
+
+	// admin
+	mux.HandleFunc("GET /admin/users", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.ListUsers), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/user", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.SearchUsers), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/containers", middleware.AuthMiddleware(middleware.AdminMiddleware(containerHandler.ListAllContainers), cfg.JWTSecret))
+
+	// nodes (admin only)
+	mux.HandleFunc("POST /admin/nodes", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.CreateNode), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/nodes", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.ListNodes), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/nodes/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.GetNode), cfg.JWTSecret))
+	mux.HandleFunc("PUT /admin/nodes/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.UpdateNode), cfg.JWTSecret))
+	mux.HandleFunc("DELETE /admin/nodes/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.DeleteNode), cfg.JWTSecret))
+
+	// public nodes endpoint (no auth)
+	mux.HandleFunc("GET /nodes", nodeHandler.ListPublicNodes)
+
+	// container
+	mux.HandleFunc("GET /vps", middleware.AuthMiddleware(containerHandler.ListContainers, cfg.JWTSecret))
+	mux.HandleFunc("POST /vps", middleware.AuthMiddleware(containerHandler.CreateContainer, cfg.JWTSecret))
+	mux.HandleFunc("GET /vps/{id}", middleware.AuthMiddleware(containerHandler.GetContainer, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /vps/{id}", middleware.AuthMiddleware(containerHandler.DeleteContainer, cfg.JWTSecret))
+	mux.HandleFunc("PUT /vps/{id}/status", middleware.AuthMiddleware(containerHandler.SetStatus, cfg.JWTSecret))
+	mux.HandleFunc("PUT /vps/{id}/info", middleware.AuthMiddleware(containerHandler.UpdateInfo, cfg.JWTSecret))
+	mux.HandleFunc("PUT /vps/{id}/specs", middleware.AuthMiddleware(containerHandler.UpdateSpecs, cfg.JWTSecret))
+	mux.HandleFunc("POST /vps/{id}/command", middleware.AuthMiddleware(containerHandler.RunCommand, cfg.JWTSecret))
+
+	// websocket
+	mux.HandleFunc("GET /vps/{id}/terminal", middleware.AuthMiddleware(wsHandler.ContainerTerminal, cfg.JWTSecret))
+
+	// port mappings
+	mux.HandleFunc("POST /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.CreatePortMapping, cfg.JWTSecret))
+	mux.HandleFunc("GET /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.GetPortMappings, cfg.JWTSecret))
+	mux.HandleFunc("PUT /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.UpdatePortMapping, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.DeletePortMapping, cfg.JWTSecret))
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

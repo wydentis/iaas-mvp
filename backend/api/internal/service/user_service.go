@@ -47,7 +47,7 @@ func (s *UserService) SignUp(ctx context.Context, req models.SignUpRequest) (*mo
 
 	slog.Info("user registered successfully", "user_id", user.ID)
 
-	return s.generateTokens(user.ID)
+	return s.generateTokens(user.ID, user.Role)
 }
 
 func (s *UserService) SignIn(ctx context.Context, req models.SignInRequest) (*models.AuthResponse, error) {
@@ -66,7 +66,7 @@ func (s *UserService) SignIn(ctx context.Context, req models.SignInRequest) (*mo
 	}
 
 	if auth.CheckPasswordHash(req.Password, user.PasswordHash) {
-		return s.generateTokens(user.ID)
+		return s.generateTokens(user.ID, user.Role)
 	}
 
 	return nil, ErrPasswordIncorrect
@@ -84,6 +84,7 @@ func (s *UserService) GetUserInfo(ctx context.Context, userID string) (*models.U
 		Surname:  user.Surname,
 		Email:    user.Email,
 		Phone:    user.Phone,
+		Role:     user.Role,
 	}, nil
 }
 
@@ -109,6 +110,7 @@ func (s *UserService) UpdateUserInfo(ctx context.Context, userID string, req mod
 		Surname:  user.Surname,
 		Email:    user.Email,
 		Phone:    user.Phone,
+		Role:     user.Role,
 	}, nil
 }
 
@@ -124,6 +126,48 @@ func (s *UserService) ChangeBalance(ctx context.Context, userID string, amount i
 	return s.Repo.ChangeBalance(ctx, userID, amount)
 }
 
+func (s *UserService) ListUsers(ctx context.Context) ([]*models.UserInfo, error) {
+	users, err := s.Repo.ListUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var userInfos []*models.UserInfo
+	for _, user := range users {
+		userInfos = append(userInfos, &models.UserInfo{
+			Username: user.Username,
+			Name:     user.Name,
+			Surname:  user.Surname,
+			Email:    user.Email,
+			Phone:    user.Phone,
+			Role:     user.Role,
+		})
+	}
+
+	return userInfos, nil
+}
+
+func (s *UserService) SearchUsers(ctx context.Context, query string) ([]*models.UserInfo, error) {
+	users, err := s.Repo.SearchUsers(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var userInfos []*models.UserInfo
+	for _, user := range users {
+		userInfos = append(userInfos, &models.UserInfo{
+			Username: user.Username,
+			Name:     user.Name,
+			Surname:  user.Surname,
+			Email:    user.Email,
+			Phone:    user.Phone,
+			Role:     user.Role,
+		})
+	}
+
+	return userInfos, nil
+}
+
 func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshRequest) (*models.AuthResponse, error) {
 	claims, err := auth.ValidateToken(req.RefreshToken, s.JWTToken, "refresh")
 	if err != nil {
@@ -135,11 +179,11 @@ func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshReques
 		return nil, err
 	}
 
-	return s.generateTokens(user.ID)
+	return s.generateTokens(user.ID, user.Role)
 }
 
-func (s *UserService) generateTokens(userID string) (*models.AuthResponse, error) {
-	accessToken, refreshToken, err := auth.GenerateTokens(userID, s.JWTToken)
+func (s *UserService) generateTokens(userID string, role string) (*models.AuthResponse, error) {
+	accessToken, refreshToken, err := auth.GenerateTokens(userID, role, s.JWTToken)
 	if err != nil {
 		return nil, err
 	}

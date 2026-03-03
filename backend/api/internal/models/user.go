@@ -10,6 +10,7 @@ type User struct {
 	Email        string    `json:"email"`
 	Phone        string    `json:"phone"`
 	Balance      int       `json:"balance"`
+	Role         string    `json:"role"`
 	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -48,6 +49,7 @@ type UserInfo struct {
 	Surname  string `json:"surname"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
+	Role     string `json:"role"`
 }
 
 type UserUpdatePasswordRequest struct {
