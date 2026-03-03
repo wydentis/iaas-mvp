@@ -60,6 +60,12 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Modal ── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @theme {
   --animate-blob1:        blob1 8s ease-in-out infinite;
   --animate-blob2:        blob2 11s ease-in-out infinite;
@@ -71,4 +77,5 @@
   --animate-float:        float 4s ease-in-out infinite;
   --animate-slow-bounce:  slow-bounce 2s ease-in-out infinite;
   --animate-fade-slide-in: fade-slide-in 0.22s ease-out;
+  --animate-slide-up:      slide-up 0.25s ease-out;
 }

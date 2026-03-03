@@ -118,3 +118,86 @@ export async function getBalance(): Promise<UserBalance> {
     throw new Error(extractMessage(err));
   }
 }
+
+// ── Container types ───────────────────────────────────────────────────────────
+export type ContainerStatus = "UNKNOWN" | "PENDING" | "RUNNING" | "STOPPED" | "ERROR";
+
+export interface Container {
+  container_id: string;
+  node_id: string;
+  user_id: string;
+  name: string;
+  image: string;
+  cpu: number;
+  ram: number;
+  disk: number;
+  status: ContainerStatus;
+  ip_address: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateContainerPayload {
+  name: string;
+  node_id: string;
+  image: string;
+  cpu: number;
+  ram: number;
+  disk: number;
+  start_script: string;
+}
+
+export interface Node {
+  node_id: string;
+  name: string;
+  ip_address: string;
+  status: string;
+  cpu_cores: number;
+  ram: number;
+  disk_space: number;
+}
+
+// ── Container requests ────────────────────────────────────────────────────────
+export async function listContainers(): Promise<Container[]> {
+  try {
+    const { data } = await api.get<Container[]>("/vps", { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function createContainer(payload: CreateContainerPayload): Promise<Container> {
+  try {
+    const { data } = await api.post<Container>("/vps", payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function deleteContainer(id: string): Promise<void> {
+  try {
+    await api.delete(`/vps/${id}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function setContainerStatus(id: string, status: ContainerStatus): Promise<void> {
+  try {
+    await api.put(`/vps/${id}/status`, { status }, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── Node requests ─────────────────────────────────────────────────────────────
+export async function listPublicNodes(): Promise<Node[]> {
+  try {
+    const { data } = await api.get<Node[]>("/nodes");
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}

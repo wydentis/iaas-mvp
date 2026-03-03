@@ -44,10 +44,16 @@ export default function Header() {
               </span>
             </div>
             <Link
+              to="/dashboard"
+              className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
+            >
+              Панель
+            </Link>
+            <Link
               to="/profile"
               className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-100"
             >
-              Управление аккаунтом
+              Аккаунт
             </Link>
             <button
               onClick={handleSignOut}

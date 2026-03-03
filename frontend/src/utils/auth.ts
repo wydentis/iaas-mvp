@@ -10,8 +10,8 @@ function isTokenValid(token: string): boolean {
 }
 
 /** Returns where to send the user when they click "Go to Dashboard". */
-export function getAuthDestination(): "/profile" | "/signup" {
+export function getAuthDestination(): "/dashboard" | "/signup" {
   const refresh = getCookie("refresh_token");
-  if (refresh && isTokenValid(refresh)) return "/profile";
+  if (refresh && isTokenValid(refresh)) return "/dashboard";
   return "/signup";
 }
