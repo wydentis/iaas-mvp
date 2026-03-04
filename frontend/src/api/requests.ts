@@ -2,8 +2,12 @@ import axios, { AxiosError } from "axios";
 import { setCookie, getCookie } from "../utils/cookies";
 
 // ── Axios client ──────────────────────────────────────────────────────────────
+// In dev, Vite proxies /auth /user /vps /nodes → backend (no CORS needed).
+// In production, requests go directly to the backend origin.
+const BASE_URL = import.meta.env.DEV ? "/api" : "https://serverdam.wydentis.xyz/api";
+
 export const api = axios.create({
-  baseURL: "https://serverdam.wydentis.xyz",
+  baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 

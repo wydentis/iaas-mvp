@@ -125,6 +125,9 @@ func main() {
 
 	allowedOrigins := []string{
 		"https://serverdam.wydentis.xyz",
+		"http://localhost:5173",
+		"http://localhost:4173",
+		"http://localhost:3000",
 	}
 	corsHandler := middleware.CORSMiddleware(allowedOrigins)(mux)
 

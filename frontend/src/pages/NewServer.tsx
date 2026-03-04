@@ -347,7 +347,7 @@ export default function NewServer() {
             <button
               type="button"
               onClick={() => setAiOpen(true)}
-              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-red-700 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 active:bg-red-800"
+              className="group flex min-w-1xl items-center justify-center gap-3 rounded-xl bg-red-700 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 active:bg-red-800"
             >
               <span className="text-lg">🤖</span>
               Спросить у ИИ — получить рекомендацию по конфигурации
@@ -639,25 +639,25 @@ export default function NewServer() {
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between text-gray-400">
                       <span>
-                        CPU ({cpu} × {CPU_PRICE} ₽)
+                        CPU ({cpu} × {CPU_PRICE} BYN)
                       </span>
-                      <span>{cpu * CPU_PRICE} ₽</span>
+                      <span>{cpu * CPU_PRICE} BYN</span>
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>
-                        RAM ({formatRAM(ram)} × {RAM_PRICE} ₽/ГБ)
+                        RAM ({formatRAM(ram)} × {RAM_PRICE} BYN/ГБ)
                       </span>
-                      <span>{Math.round((ram / 1024) * RAM_PRICE)} ₽</span>
+                      <span>{Math.round((ram / 1024) * RAM_PRICE)} BYN</span>
                     </div>
                     <div className="flex justify-between text-gray-400">
                       <span>
-                        SSD ({disk} × {DISK_PRICE} ₽)
+                        SSD ({disk} × {DISK_PRICE} BYN)
                       </span>
-                      <span>{disk * DISK_PRICE} ₽</span>
+                      <span>{disk * DISK_PRICE} BYN</span>
                     </div>
                     <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-gray-900">
                       <span>Итого / месяц</span>
-                      <span className="text-red-700">{price} ₽</span>
+                      <span className="text-red-700">{price} BYN</span>
                     </div>
                     <p className="text-[10px] text-gray-300">
                       Примерная стоимость. Списывается посуточно.

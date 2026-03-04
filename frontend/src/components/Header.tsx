@@ -42,7 +42,7 @@ export default function Header() {
               <div className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-white">
                 <span className="text-xs text-red-300">Баланс</span>
                 <span className="font-semibold">
-                  {balance !== null ? `${balance.toLocaleString()} ₽` : "—"}
+                  {balance !== null ? `${balance.toLocaleString()} BYN` : "—"}
                 </span>
               </div>
               <Link
