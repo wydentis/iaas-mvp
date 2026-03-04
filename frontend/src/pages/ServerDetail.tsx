@@ -11,6 +11,7 @@ import {
   updateContainerInfo,
 } from "../api/requests";
 import type { Container, ContainerStatus, PortMapping } from "../api/requests";
+import type { MetricsPoint } from "../utils/useContainerMetrics";
 import { getCookie } from "../utils/cookies";
 import { useContainerMetrics } from "../utils/useContainerMetrics";
 import AnimatedBackground from "../components/AnimatedBackground";
@@ -776,7 +777,6 @@ export default function ServerDetail() {
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 // ── MetricsTab ──────────────────────────────────────────────────────────────────
-import type { MetricsPoint } from "../utils/useContainerMetrics";
 
 function fmtBytes(b: number): string {
   if (b >= 1e9) return (b / 1e9).toFixed(1) + " GB";

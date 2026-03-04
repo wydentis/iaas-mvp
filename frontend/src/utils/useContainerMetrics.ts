@@ -26,7 +26,6 @@ export function useContainerMetrics(containerId: string, enabled: boolean) {
 
     const token = getCookie("access_token") ?? "";
     const url = `${BASE_URL}/vps/${containerId}/metrics?token=${encodeURIComponent(token)}&refresh_ms=1000`;
-
     const ws = new WebSocket(url);
     wsRef.current = ws;
     setError(null);

@@ -12,6 +12,15 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// ── Request interceptor: inject Authorization header ─────────────────────────
+api.interceptors.request.use((config) => {
+  const token = getCookie("access_token");
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // ── Token refresh interceptor ─────────────────────────────────────────────────
 let isRefreshing = false;
 let refreshQueue: Array<(token: string) => void> = [];
