@@ -55,7 +55,7 @@ export default function TopUp() {
             {/* Header */}
             <div className="border-b border-gray-100 px-7 py-6">
               <div className="mb-1 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-700 text-lg shadow-[0_0_16px_rgba(225,29,72,0.4)]">
+                <span className="font-bold flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-700 text-lg shadow-[0_0_16px_rgba(225,29,72,0.4)]">
                   ПС
                 </span>
                 <h1 className="text-2xl font-black text-red-900">
