@@ -14,28 +14,28 @@ const DISK_PRICE = 5;
 // ── OS images ─────────────────────────────────────────────────────────────────
 const IMAGES = [
   {
-    id: "ubuntu:22.04",
+    id: "ubuntu/22.04",
     label: "Ubuntu 22.04",
     icon: "🟠",
     desc: "LTS, популярный",
   },
   {
-    id: "ubuntu:20.04",
+    id: "ubuntu/20.04",
     label: "Ubuntu 20.04",
     icon: "🟠",
     desc: "LTS, стабильный",
   },
-  { id: "debian:12", label: "Debian 12", icon: "🔴", desc: "Bookworm" },
-  { id: "debian:11", label: "Debian 11", icon: "🔴", desc: "Bullseye" },
+  { id: "debian/12", label: "Debian 12", icon: "🔴", desc: "Bookworm" },
+  { id: "debian/11", label: "Debian 11", icon: "🔴", desc: "Bullseye" },
   {
-    id: "alpine:3.19",
+    id: "alpine/3.19",
     label: "Alpine 3.19",
     icon: "🔵",
     desc: "Минималистичный",
   },
-  { id: "centos:7", label: "CentOS 7", icon: "💜", desc: "Корпоративный" },
-  { id: "fedora:39", label: "Fedora 39", icon: "🔵", desc: "Современный" },
-  { id: "arch:latest", label: "Arch Linux", icon: "🔷", desc: "Передовой" },
+  { id: "centos/7", label: "CentOS 7", icon: "💜", desc: "Корпоративный" },
+  { id: "fedora/39", label: "Fedora 39", icon: "🔵", desc: "Современный" },
+  { id: "arch/latest", label: "Arch Linux", icon: "🔷", desc: "Передовой" },
 ];
 
 const CPU_OPTS = [1, 2, 4, 8, 16];
@@ -204,7 +204,7 @@ export default function NewServer() {
 
   const [name, setName] = useState("");
   const [planId, setPlanId] = useState("standard");
-  const [image, setImage] = useState("ubuntu:22.04");
+  const [image, setImage] = useState("ubuntu/22.04");
   const [nodeId, setNodeId] = useState("");
   const [cpu, setCpu] = useState(2);
   const [ram, setRam] = useState(2048);
@@ -268,6 +268,8 @@ export default function NewServer() {
         disk,
         start_script: script,
       });
+      const existing = JSON.parse(localStorage.getItem("container_ids") ?? "[]") as string[];
+      localStorage.setItem("container_ids", JSON.stringify([...existing, c.container_id]));
       navigate(`/servers/${c.container_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка создания");
@@ -671,7 +673,8 @@ export default function NewServer() {
                   )}
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={handleCreate}
                     disabled={creating || nodes.length === 0 || !name.trim()}
                     className="group relative w-full overflow-hidden rounded-xl bg-red-900 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-900/30 transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
                   >

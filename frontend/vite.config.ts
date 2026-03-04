@@ -10,6 +10,7 @@ export default defineConfig({
       '/api': {
         target: 'https://serverdam.wydentis.xyz',
         changeOrigin: true,
+        ws: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
     },

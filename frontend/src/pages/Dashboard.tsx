@@ -280,7 +280,7 @@ function ServerCard({
   return (
     <div
       onClick={onClick}
-      className="animate-fade-slide-in group flex cursor-pointer flex-col rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md transition hover:border-red-500/30 hover:bg-white/8 hover:shadow-[0_8px_32px_rgba(180,0,0,0.2)]"
+      className="animate-fade-slide-in group flex cursor-pointer flex-col rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition hover:shadow-lg hover:ring-red-200"
     >
       {/* Card header */}
       <div className="flex items-start justify-between p-5 pb-3">
@@ -289,11 +289,11 @@ function ServerCard({
             <span
               className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${STATUS_DOT[c.status]}`}
             />
-            <h3 className="truncate font-bold text-white transition group-hover:text-red-100">
+            <h3 className="truncate font-bold text-gray-900 transition group-hover:text-red-700">
               {c.name}
             </h3>
           </div>
-          <p className="mt-0.5 truncate text-xs text-red-200/50">{c.image}</p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">{c.image}</p>
         </div>
         <span
           className={`ml-2 flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[c.status]}`}
@@ -303,7 +303,7 @@ function ServerCard({
       </div>
 
       {/* Specs */}
-      <div className="mx-5 flex gap-2 border-t border-white/8 pt-3">
+      <div className="mx-5 flex gap-2 border-t border-gray-100 pt-3">
         <Chip icon="⚙️" label={`${c.cpu} CPU`} />
         <Chip icon="🧠" label={formatRAM(c.ram)} />
         <Chip icon="💾" label={`${c.disk} ГБ`} />
@@ -311,20 +311,20 @@ function ServerCard({
 
       {/* IP */}
       {c.ip_address && (
-        <p className="mx-5 mt-2 font-mono text-xs text-red-200/40">
+        <p className="mx-5 mt-2 font-mono text-xs text-gray-400">
           {c.ip_address}
         </p>
       )}
 
       {/* Actions */}
-      <div className="mt-auto flex gap-2 border-t border-white/8 p-4">
+      <div className="mt-auto flex gap-2 border-t border-gray-100 p-4">
         <button
           onClick={onToggle}
           disabled={loading || !canToggle}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition disabled:opacity-40 ${
             c.status === "RUNNING"
-              ? "bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
-              : "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+              ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
+              : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
           }`}
         >
           {loading ? (
@@ -378,7 +378,7 @@ function ServerCard({
         <button
           onClick={onDelete}
           disabled={loading}
-          className="flex items-center justify-center rounded-xl bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/25 disabled:opacity-40"
+          className="flex items-center justify-center rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-40"
         >
           <svg
             className="h-3.5 w-3.5"
@@ -397,7 +397,7 @@ function ServerCard({
       </div>
 
       {/* Click hint */}
-      <div className="border-t border-white/5 px-5 py-2 text-center text-[10px] text-white/20 transition group-hover:text-white/40">
+      <div className="border-t border-gray-100 px-5 py-2 text-center text-[10px] text-gray-300 transition group-hover:text-gray-400">
         Нажмите для подробностей →
       </div>
     </div>
@@ -406,7 +406,7 @@ function ServerCard({
 
 function Chip({ icon, label }: { icon: string; label: string }) {
   return (
-    <span className="flex items-center gap-1 rounded-lg bg-white/8 px-2 py-1 text-xs text-red-100/70">
+    <span className="flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-600">
       <span>{icon}</span>
       {label}
     </span>

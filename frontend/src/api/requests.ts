@@ -1,5 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { setCookie, getCookie } from "../utils/cookies";
+import type { InternalAxiosRequestConfig } from "axios";
+import { setCookie, getCookie, removeCookie } from "../utils/cookies";
 
 // ── Axios client ──────────────────────────────────────────────────────────────
 // In dev, Vite proxies /auth /user /vps /nodes → backend (no CORS needed).
@@ -10,6 +11,57 @@ export const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
+
+// ── Token refresh interceptor ─────────────────────────────────────────────────
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status !== 401 || original._retry) {
+      return Promise.reject(error);
+    }
+
+    const refreshToken = getCookie("refresh_token");
+    if (!refreshToken) {
+      removeCookie("access_token");
+      return Promise.reject(error);
+    }
+
+    if (isRefreshing) {
+      return new Promise<string>((resolve) => {
+        refreshQueue.push(resolve);
+      }).then((newToken) => {
+        original.headers["Authorization"] = `Bearer ${newToken}`;
+        return api(original);
+      });
+    }
+
+    original._retry = true;
+    isRefreshing = true;
+
+    try {
+      const { data } = await axios.post<AuthResponse>(`${BASE_URL}/auth/refresh`, {
+        refresh_token: refreshToken,
+      });
+      storeTokens(data);
+      refreshQueue.forEach((cb) => cb(data.access_token));
+      refreshQueue = [];
+      original.headers["Authorization"] = `Bearer ${data.access_token}`;
+      return api(original);
+    } catch {
+      refreshQueue = [];
+      removeCookie("access_token");
+      removeCookie("refresh_token");
+      return Promise.reject(error);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+);
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 function extractMessage(err: unknown): string {
@@ -44,6 +96,7 @@ export interface UserInfo {
   surname: string;
   email: string;
   phone: string;
+  role?: "user" | "admin";
 }
 
 export interface UserBalance {
@@ -278,6 +331,83 @@ export async function listPublicNodes(): Promise<Node[]> {
 export async function changeBalance(amount: number): Promise<void> {
   try {
     await api.put("/user/balance", { amount }, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── Admin types ───────────────────────────────────────────────────────────────
+export interface AdminUser {
+  user_id: string;
+  username: string;
+  name: string;
+  surname: string;
+  email: string;
+  phone: string;
+  balance: number;
+  role: "user" | "admin";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateNodePayload {
+  name: string;
+  ip_address: string;
+  status: string;
+  cpu_cores: number;
+  ram: number;
+  disk_space: number;
+}
+
+// ── Admin requests ────────────────────────────────────────────────────────────
+export async function adminListUsers(): Promise<AdminUser[]> {
+  try {
+    const { data } = await api.get<AdminUser[]>("/admin/users", { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminListContainers(): Promise<Container[]> {
+  try {
+    const { data } = await api.get<Container[]>("/admin/containers", { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminListNodes(): Promise<Node[]> {
+  try {
+    const { data } = await api.get<Node[]>("/admin/nodes", { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminCreateNode(payload: CreateNodePayload): Promise<Node> {
+  try {
+    const { data } = await api.post<Node>("/admin/nodes", payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminUpdateNode(id: string, payload: CreateNodePayload): Promise<Node> {
+  try {
+    const { data } = await api.put<Node>(`/admin/nodes/${id}`, payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminDeleteNode(id: string): Promise<void> {
+  try {
+    await api.delete(`/admin/nodes/${id}`, { headers: authHeaders() });
   } catch (err) {
     throw new Error(extractMessage(err));
   }

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getBalance } from "../api/requests";
+import { getBalance, getUserInfo } from "../api/requests";
 import { getCookie, removeCookie } from "../utils/cookies";
 
 export default function Header() {
   const navigate = useNavigate();
   const [balance, setBalance] = useState<number | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isLoggedIn = !!getCookie("access_token");
 
   useEffect(() => {
@@ -13,6 +15,12 @@ export default function Header() {
     getBalance()
       .then((b) => setBalance(b.amount))
       .catch(() => setBalance(null));
+    getUserInfo()
+      .then((u) => {
+        setUsername(u.username);
+        setIsAdmin(u.role === "admin");
+      })
+      .catch(() => setUsername(null));
   }, [isLoggedIn]);
 
   function handleSignOut() {
@@ -24,13 +32,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-red-900/40 bg-red-950/90 px-6 backdrop-blur-sm">
       {/* Логотип */}
-      <Link to="/" className="flex items-center gap-2.5 text-white">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-600 to-rose-700 text-sm font-black shadow-[0_0_12px_rgba(225,29,72,0.5)]">
-          I
-        </span>
-        <span className="hidden text-base font-black tracking-tight sm:block">
-          IaaS MVP
-        </span>
+      <Link to="/" className="flex items-center">
+        <img src="/logo.svg" alt="Logo" className="h-8" />
       </Link>
 
       {/* Правая часть */}
@@ -49,13 +52,31 @@ export default function Header() {
                 to="/topup"
                 className="flex items-center gap-1 border-l border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
               >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4.5v15m7.5-7.5h-15"
+                  />
                 </svg>
                 Пополнить
               </Link>
             </div>
 
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="rounded-lg border border-red-500/40 bg-red-900/40 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-800/60"
+              >
+                Админ
+              </Link>
+            )}
             <Link
               to="/dashboard"
               className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
@@ -66,7 +87,7 @@ export default function Header() {
               to="/profile"
               className="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition hover:bg-red-100"
             >
-              Аккаунт
+              {username ?? "Аккаунт"}
             </Link>
             <button
               onClick={handleSignOut}
