@@ -213,18 +213,14 @@ export default function NewServer() {
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  /*
+
   useEffect(() => {
     if (!getCookie("access_token")) { navigate("/"); return; }
     listPublicNodes()
-      .then((n) => {
-        const available = n ?? [];
-        setNodes(available);
-        if (available.length > 0) setNodeId(available[0].node_id);
-      })
+      .then((n) => { const a = n ?? []; setNodes(a); if (a.length > 0) setNodeId(a[0].node_id); })
       .catch(() => setNodes([]));
   }, [navigate]);
-*/
+
   function selectPlan(id: string) {
     setPlanId(id);
     const p = PLANS.find((x) => x.id === id)!;
@@ -294,8 +290,8 @@ export default function NewServer() {
 
       {/* ── White panel wrapper ── */}
       <div className="relative z-10 mx-auto max-w-[1400px] px-4 pt-6 pb-16">
-        {/* Panel top bar */}
-        <div className="mb-3 flex items-center justify-between">
+        {/* Panel top bar — back button only */}
+        <div className="mb-3">
           <button
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/30"
@@ -314,13 +310,6 @@ export default function NewServer() {
               />
             </svg>
             Назад
-          </button>
-          <button
-            onClick={() => setAiOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25"
-          >
-            <span>��</span>
-            Спросить у ИИ
           </button>
         </div>
 
@@ -353,12 +342,25 @@ export default function NewServer() {
             </div>
           </div>
 
+          {/* ── Ask AI — full-width button inside the panel ── */}
+          <div className="px-6 py-4 border-b border-gray-100">
+            <button
+              type="button"
+              onClick={() => setAiOpen(true)}
+              className="group flex w-full items-center justify-center gap-3 rounded-xl bg-red-700 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 active:bg-red-800"
+            >
+              <span className="text-lg">🤖</span>
+              Спросить у ИИ — получить рекомендацию по конфигурации
+              <svg className="ml-auto h-4 w-4 text-red-200 transition group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+
           <form onSubmit={handleCreate}>
-            <div className="flex min-h-[600px]">
-              {/* ════════════════════════════════════
-                  LEFT — 78% — configuration
-              ════════════════════════════════════ */}
-              <div className="w-[78%] space-y-10 overflow-y-auto border-r border-gray-100 px-8 py-8">
+            {/* LEFT — full width (right panel is fixed, not in flow) */}
+            <div className="min-h-[600px] space-y-10 px-8 py-8"
+                 style={{ marginRight: "308px" }}>
                 {/* 1. Название */}
                 <section>
                   <StepHeader step="1" title="Название сервера" />
@@ -577,16 +579,17 @@ export default function NewServer() {
                     Выполняется один раз при первом запуске контейнера
                   </p>
                 </section>
-              </div>
+            </div>
+          </form>
+        </div>
+      </div>
 
-              {/* ════════════════════════════════════
-                  RIGHT — 22% — sticky summary
-              ════════════════════════════════════ */}
-              <div className="w-[22%] flex-shrink-0 bg-gray-50">
-                <div className="sticky top-[72px] space-y-5 p-6">
-                  <h2 className="text-xs font-black tracking-wider text-gray-400 uppercase">
-                    Итог
-                  </h2>
+      {/* ════════════════════════════════════════════
+          FIXED SUMMARY PANEL — always visible
+      ════════════════════════════════════════════ */}
+      <div className="fixed right-4 top-20 bottom-4 z-20 flex w-[292px] flex-col overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
+        <div className="space-y-5 p-6">
+          <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">Итог</h2>
 
                   {/* Config summary */}
                   <div className="space-y-2.5">
@@ -726,10 +729,6 @@ export default function NewServer() {
                     Отмена
                   </button>
                 </div>
-              </div>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   );

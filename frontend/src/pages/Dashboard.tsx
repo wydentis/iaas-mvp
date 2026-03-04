@@ -48,16 +48,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>(
-    {},
-  );
-  /*
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     if (!getCookie("access_token")) { navigate("/"); return; }
     load();
   }, [navigate]);
-
-*/
   async function load() {
     setLoading(true);
     setError(null);
