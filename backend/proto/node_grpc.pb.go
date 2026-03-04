@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.1
 // - protoc             v3.21.12
-// source: proto/node.proto
+// source: node.proto
 
 package node
 
@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NodeService_CreateVPS_FullMethodName         = "/node.NodeService/CreateVPS"
-	NodeService_GetVPS_FullMethodName            = "/node.NodeService/GetVPS"
-	NodeService_SetVPSStatus_FullMethodName      = "/node.NodeService/SetVPSStatus"
-	NodeService_DeleteVPS_FullMethodName         = "/node.NodeService/DeleteVPS"
-	NodeService_UpdateVPS_FullMethodName         = "/node.NodeService/UpdateVPS"
-	NodeService_RunCommand_FullMethodName        = "/node.NodeService/RunCommand"
-	NodeService_CreatePortMapping_FullMethodName = "/node.NodeService/CreatePortMapping"
-	NodeService_GetPortMappings_FullMethodName   = "/node.NodeService/GetPortMappings"
-	NodeService_UpdatePortMapping_FullMethodName = "/node.NodeService/UpdatePortMapping"
-	NodeService_DeletePortMapping_FullMethodName = "/node.NodeService/DeletePortMapping"
+	NodeService_CreateVPS_FullMethodName              = "/node.NodeService/CreateVPS"
+	NodeService_GetVPS_FullMethodName                 = "/node.NodeService/GetVPS"
+	NodeService_SetVPSStatus_FullMethodName           = "/node.NodeService/SetVPSStatus"
+	NodeService_DeleteVPS_FullMethodName              = "/node.NodeService/DeleteVPS"
+	NodeService_UpdateVPS_FullMethodName              = "/node.NodeService/UpdateVPS"
+	NodeService_RunCommand_FullMethodName             = "/node.NodeService/RunCommand"
+	NodeService_CreatePortMapping_FullMethodName      = "/node.NodeService/CreatePortMapping"
+	NodeService_GetPortMappings_FullMethodName        = "/node.NodeService/GetPortMappings"
+	NodeService_UpdatePortMapping_FullMethodName      = "/node.NodeService/UpdatePortMapping"
+	NodeService_DeletePortMapping_FullMethodName      = "/node.NodeService/DeletePortMapping"
+	NodeService_StreamMetrics_FullMethodName          = "/node.NodeService/StreamMetrics"
+	NodeService_StreamContainerMetrics_FullMethodName = "/node.NodeService/StreamContainerMetrics"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -45,6 +47,8 @@ type NodeServiceClient interface {
 	GetPortMappings(ctx context.Context, in *GetPortMappingsRequest, opts ...grpc.CallOption) (*GetPortMappingsResponse, error)
 	UpdatePortMapping(ctx context.Context, in *UpdatePortMappingRequest, opts ...grpc.CallOption) (*UpdatePortMappingResponse, error)
 	DeletePortMapping(ctx context.Context, in *DeletePortMappingRequest, opts ...grpc.CallOption) (*DeletePortMappingResponse, error)
+	StreamMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[MetricsResponse], error)
+	StreamContainerMetrics(ctx context.Context, in *ContainerMetricsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ContainerMetricsResponse], error)
 }
 
 type nodeServiceClient struct {
@@ -155,6 +159,44 @@ func (c *nodeServiceClient) DeletePortMapping(ctx context.Context, in *DeletePor
 	return out, nil
 }
 
+func (c *nodeServiceClient) StreamMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[MetricsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &NodeService_ServiceDesc.Streams[0], NodeService_StreamMetrics_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[MetricsRequest, MetricsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NodeService_StreamMetricsClient = grpc.ServerStreamingClient[MetricsResponse]
+
+func (c *nodeServiceClient) StreamContainerMetrics(ctx context.Context, in *ContainerMetricsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ContainerMetricsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &NodeService_ServiceDesc.Streams[1], NodeService_StreamContainerMetrics_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ContainerMetricsRequest, ContainerMetricsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NodeService_StreamContainerMetricsClient = grpc.ServerStreamingClient[ContainerMetricsResponse]
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -169,6 +211,8 @@ type NodeServiceServer interface {
 	GetPortMappings(context.Context, *GetPortMappingsRequest) (*GetPortMappingsResponse, error)
 	UpdatePortMapping(context.Context, *UpdatePortMappingRequest) (*UpdatePortMappingResponse, error)
 	DeletePortMapping(context.Context, *DeletePortMappingRequest) (*DeletePortMappingResponse, error)
+	StreamMetrics(*MetricsRequest, grpc.ServerStreamingServer[MetricsResponse]) error
+	StreamContainerMetrics(*ContainerMetricsRequest, grpc.ServerStreamingServer[ContainerMetricsResponse]) error
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -208,6 +252,12 @@ func (UnimplementedNodeServiceServer) UpdatePortMapping(context.Context, *Update
 }
 func (UnimplementedNodeServiceServer) DeletePortMapping(context.Context, *DeletePortMappingRequest) (*DeletePortMappingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeletePortMapping not implemented")
+}
+func (UnimplementedNodeServiceServer) StreamMetrics(*MetricsRequest, grpc.ServerStreamingServer[MetricsResponse]) error {
+	return status.Error(codes.Unimplemented, "method StreamMetrics not implemented")
+}
+func (UnimplementedNodeServiceServer) StreamContainerMetrics(*ContainerMetricsRequest, grpc.ServerStreamingServer[ContainerMetricsResponse]) error {
+	return status.Error(codes.Unimplemented, "method StreamContainerMetrics not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -410,6 +460,28 @@ func _NodeService_DeletePortMapping_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_StreamMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(MetricsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServiceServer).StreamMetrics(m, &grpc.GenericServerStream[MetricsRequest, MetricsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NodeService_StreamMetricsServer = grpc.ServerStreamingServer[MetricsResponse]
+
+func _NodeService_StreamContainerMetrics_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ContainerMetricsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServiceServer).StreamContainerMetrics(m, &grpc.GenericServerStream[ContainerMetricsRequest, ContainerMetricsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NodeService_StreamContainerMetricsServer = grpc.ServerStreamingServer[ContainerMetricsResponse]
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,6 +530,17 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _NodeService_DeletePortMapping_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/node.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamMetrics",
+			Handler:       _NodeService_StreamMetrics_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamContainerMetrics",
+			Handler:       _NodeService_StreamContainerMetrics_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "node.proto",
 }

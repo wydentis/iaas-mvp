@@ -3,9 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"time"
 
 	"github.com/wydentis/iaas-mvp/agent/internal/container"
 	"github.com/wydentis/iaas-mvp/agent/internal/iptables"
+	"github.com/wydentis/iaas-mvp/agent/internal/metrics"
 	"github.com/wydentis/iaas-mvp/agent/internal/provider"
 	node "github.com/wydentis/iaas-mvp/backend/proto"
 )
@@ -188,4 +192,95 @@ func (s *Server) DeletePortMapping(ctx context.Context, req *node.DeletePortMapp
 	}
 
 	return &node.DeletePortMappingResponse{Success: true}, nil
+}
+
+func (s *Server) StreamMetrics(req *node.MetricsRequest, stream node.NodeService_StreamMetricsServer) error {
+	collector := metrics.NewCollector(s.provider.(*provider.LXD).GetClient())
+	
+	refreshMs := req.RefreshMs
+	if refreshMs < 100 {
+		refreshMs = 1000
+	}
+	
+	ticker := time.NewTicker(time.Duration(refreshMs) * time.Millisecond)
+	defer ticker.Stop()
+	
+	nodeID := "node-" + os.Getenv("NODE_ID")
+	if nodeID == "node-" {
+		nodeID = "node-default"
+	}
+	
+	for {
+		select {
+		case <-ticker.C:
+			nodeMetrics, err := collector.GetNodeMetrics(nodeID)
+			if err != nil {
+				continue
+			}
+			
+			containerMetrics, err := collector.GetAllContainerMetrics()
+			if err != nil {
+				containerMetrics = []*node.ContainerMetrics{}
+			}
+			
+			response := &node.MetricsResponse{
+				Node:       nodeMetrics,
+				Containers: containerMetrics,
+				Timestamp:  time.Now().Unix(),
+			}
+			
+			if err := stream.Send(response); err != nil {
+				return err
+			}
+			
+		case <-stream.Context().Done():
+			return nil
+		}
+	}
+}
+
+func (s *Server) StreamContainerMetrics(req *node.ContainerMetricsRequest, stream node.NodeService_StreamContainerMetricsServer) error {
+	collector := metrics.NewCollector(s.provider.(*provider.LXD).GetClient())
+	
+	refreshMs := req.RefreshMs
+	if refreshMs < 100 {
+		refreshMs = 1000
+	}
+	
+	streamID := time.Now().Unix()
+	slog.Info("starting container metrics stream", "stream_id", streamID, "container_id", req.ContainerId, "refresh_ms", refreshMs)
+	
+	ticker := time.NewTicker(time.Duration(refreshMs) * time.Millisecond)
+	defer ticker.Stop()
+	
+	count := 0
+	for {
+		select {
+		case <-ticker.C:
+			count++
+			containerMetrics, err := collector.GetContainerMetrics(req.ContainerId)
+			if err != nil {
+				slog.Error("failed to get container metrics", "stream_id", streamID, "err", err)
+				continue
+			}
+			
+			response := &node.ContainerMetricsResponse{
+				Metrics:   containerMetrics,
+				Timestamp: time.Now().Unix(),
+			}
+			
+			if count <= 3 || count%10 == 0 {
+				slog.Info("sending metrics", "stream_id", streamID, "count", count, "cpu", containerMetrics.CpuPercent, "ram", containerMetrics.RamPercent)
+			}
+			
+			if err := stream.Send(response); err != nil {
+				slog.Error("failed to send metrics", "stream_id", streamID, "err", err)
+				return err
+			}
+			
+		case <-stream.Context().Done():
+			slog.Info("stream closed", "stream_id", streamID, "total_sent", count)
+			return nil
+		}
+	}
 }

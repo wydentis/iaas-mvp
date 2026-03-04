@@ -54,6 +54,7 @@ func main() {
 	portMappingHandler := handler.NewPortMappingHandler(portMappingService)
 
 	wsHandler := handler.NewWebSocketHandler(containerService)
+	metricsHandler := handler.NewMetricsHandler(nodeManager, containerRepo)
 
 	mux := http.NewServeMux()
 
@@ -99,6 +100,10 @@ func main() {
 
 	// websocket
 	mux.HandleFunc("GET /vps/{id}/terminal", middleware.AuthMiddleware(wsHandler.ContainerTerminal, cfg.JWTSecret))
+
+	// metrics (WebSocket)
+	mux.HandleFunc("GET /admin/metrics", middleware.AuthMiddleware(middleware.AdminMiddleware(metricsHandler.StreamMetrics), cfg.JWTSecret))
+	mux.HandleFunc("GET /vps/{id}/metrics", middleware.AuthMiddleware(metricsHandler.StreamContainerMetrics, cfg.JWTSecret))
 
 	// port mappings
 	mux.HandleFunc("POST /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.CreatePortMapping, cfg.JWTSecret))

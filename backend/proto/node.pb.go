@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v3.21.12
-// source: proto/node.proto
+// source: node.proto
 
 package node
 
@@ -60,11 +60,11 @@ func (x ContainerStatus) String() string {
 }
 
 func (ContainerStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_node_proto_enumTypes[0].Descriptor()
+	return file_node_proto_enumTypes[0].Descriptor()
 }
 
 func (ContainerStatus) Type() protoreflect.EnumType {
-	return &file_proto_node_proto_enumTypes[0]
+	return &file_node_proto_enumTypes[0]
 }
 
 func (x ContainerStatus) Number() protoreflect.EnumNumber {
@@ -73,7 +73,7 @@ func (x ContainerStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ContainerStatus.Descriptor instead.
 func (ContainerStatus) EnumDescriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{0}
+	return file_node_proto_rawDescGZIP(), []int{0}
 }
 
 type CreateRequest struct {
@@ -90,7 +90,7 @@ type CreateRequest struct {
 
 func (x *CreateRequest) Reset() {
 	*x = CreateRequest{}
-	mi := &file_proto_node_proto_msgTypes[0]
+	mi := &file_node_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +102,7 @@ func (x *CreateRequest) String() string {
 func (*CreateRequest) ProtoMessage() {}
 
 func (x *CreateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[0]
+	mi := &file_node_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +115,7 @@ func (x *CreateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRequest.ProtoReflect.Descriptor instead.
 func (*CreateRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{0}
+	return file_node_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *CreateRequest) GetId() string {
@@ -171,7 +171,7 @@ type CreateResponse struct {
 
 func (x *CreateResponse) Reset() {
 	*x = CreateResponse{}
-	mi := &file_proto_node_proto_msgTypes[1]
+	mi := &file_node_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -183,7 +183,7 @@ func (x *CreateResponse) String() string {
 func (*CreateResponse) ProtoMessage() {}
 
 func (x *CreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[1]
+	mi := &file_node_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -196,7 +196,7 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResponse.ProtoReflect.Descriptor instead.
 func (*CreateResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{1}
+	return file_node_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateResponse) GetSuccess() bool {
@@ -229,7 +229,7 @@ type GetRequest struct {
 
 func (x *GetRequest) Reset() {
 	*x = GetRequest{}
-	mi := &file_proto_node_proto_msgTypes[2]
+	mi := &file_node_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -241,7 +241,7 @@ func (x *GetRequest) String() string {
 func (*GetRequest) ProtoMessage() {}
 
 func (x *GetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[2]
+	mi := &file_node_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +254,7 @@ func (x *GetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{2}
+	return file_node_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetRequest) GetId() string {
@@ -276,7 +276,7 @@ type GetResponse struct {
 
 func (x *GetResponse) Reset() {
 	*x = GetResponse{}
-	mi := &file_proto_node_proto_msgTypes[3]
+	mi := &file_node_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +288,7 @@ func (x *GetResponse) String() string {
 func (*GetResponse) ProtoMessage() {}
 
 func (x *GetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[3]
+	mi := &file_node_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +301,7 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{3}
+	return file_node_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetResponse) GetId() string {
@@ -342,7 +342,7 @@ type SetStatusRequest struct {
 
 func (x *SetStatusRequest) Reset() {
 	*x = SetStatusRequest{}
-	mi := &file_proto_node_proto_msgTypes[4]
+	mi := &file_node_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -354,7 +354,7 @@ func (x *SetStatusRequest) String() string {
 func (*SetStatusRequest) ProtoMessage() {}
 
 func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[4]
+	mi := &file_node_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -367,7 +367,7 @@ func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusRequest.ProtoReflect.Descriptor instead.
 func (*SetStatusRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{4}
+	return file_node_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SetStatusRequest) GetId() string {
@@ -394,7 +394,7 @@ type SetStatusResponse struct {
 
 func (x *SetStatusResponse) Reset() {
 	*x = SetStatusResponse{}
-	mi := &file_proto_node_proto_msgTypes[5]
+	mi := &file_node_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +406,7 @@ func (x *SetStatusResponse) String() string {
 func (*SetStatusResponse) ProtoMessage() {}
 
 func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[5]
+	mi := &file_node_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +419,7 @@ func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStatusResponse.ProtoReflect.Descriptor instead.
 func (*SetStatusResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{5}
+	return file_node_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SetStatusResponse) GetSuccess() bool {
@@ -445,7 +445,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_proto_node_proto_msgTypes[6]
+	mi := &file_node_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -457,7 +457,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[6]
+	mi := &file_node_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -470,7 +470,7 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{6}
+	return file_node_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeleteRequest) GetId() string {
@@ -490,7 +490,7 @@ type DeleteResponse struct {
 
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
-	mi := &file_proto_node_proto_msgTypes[7]
+	mi := &file_node_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -502,7 +502,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[7]
+	mi := &file_node_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -515,7 +515,7 @@ func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{7}
+	return file_node_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeleteResponse) GetSuccess() bool {
@@ -544,7 +544,7 @@ type UpdateRequest struct {
 
 func (x *UpdateRequest) Reset() {
 	*x = UpdateRequest{}
-	mi := &file_proto_node_proto_msgTypes[8]
+	mi := &file_node_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -556,7 +556,7 @@ func (x *UpdateRequest) String() string {
 func (*UpdateRequest) ProtoMessage() {}
 
 func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[8]
+	mi := &file_node_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -569,7 +569,7 @@ func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{8}
+	return file_node_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateRequest) GetId() string {
@@ -610,7 +610,7 @@ type UpdateResponse struct {
 
 func (x *UpdateResponse) Reset() {
 	*x = UpdateResponse{}
-	mi := &file_proto_node_proto_msgTypes[9]
+	mi := &file_node_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -622,7 +622,7 @@ func (x *UpdateResponse) String() string {
 func (*UpdateResponse) ProtoMessage() {}
 
 func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[9]
+	mi := &file_node_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -635,7 +635,7 @@ func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{9}
+	return file_node_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateResponse) GetSuccess() bool {
@@ -662,7 +662,7 @@ type RunCommandRequest struct {
 
 func (x *RunCommandRequest) Reset() {
 	*x = RunCommandRequest{}
-	mi := &file_proto_node_proto_msgTypes[10]
+	mi := &file_node_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -674,7 +674,7 @@ func (x *RunCommandRequest) String() string {
 func (*RunCommandRequest) ProtoMessage() {}
 
 func (x *RunCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[10]
+	mi := &file_node_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -687,7 +687,7 @@ func (x *RunCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunCommandRequest.ProtoReflect.Descriptor instead.
 func (*RunCommandRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{10}
+	return file_node_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RunCommandRequest) GetId() string {
@@ -715,7 +715,7 @@ type RunCommandResponse struct {
 
 func (x *RunCommandResponse) Reset() {
 	*x = RunCommandResponse{}
-	mi := &file_proto_node_proto_msgTypes[11]
+	mi := &file_node_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +727,7 @@ func (x *RunCommandResponse) String() string {
 func (*RunCommandResponse) ProtoMessage() {}
 
 func (x *RunCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[11]
+	mi := &file_node_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +740,7 @@ func (x *RunCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunCommandResponse.ProtoReflect.Descriptor instead.
 func (*RunCommandResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{11}
+	return file_node_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *RunCommandResponse) GetSuccess() bool {
@@ -776,7 +776,7 @@ type PortMapping struct {
 
 func (x *PortMapping) Reset() {
 	*x = PortMapping{}
-	mi := &file_proto_node_proto_msgTypes[12]
+	mi := &file_node_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -788,7 +788,7 @@ func (x *PortMapping) String() string {
 func (*PortMapping) ProtoMessage() {}
 
 func (x *PortMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[12]
+	mi := &file_node_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -801,7 +801,7 @@ func (x *PortMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortMapping.ProtoReflect.Descriptor instead.
 func (*PortMapping) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{12}
+	return file_node_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *PortMapping) GetId() string {
@@ -844,7 +844,7 @@ type CreatePortMappingRequest struct {
 
 func (x *CreatePortMappingRequest) Reset() {
 	*x = CreatePortMappingRequest{}
-	mi := &file_proto_node_proto_msgTypes[13]
+	mi := &file_node_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -856,7 +856,7 @@ func (x *CreatePortMappingRequest) String() string {
 func (*CreatePortMappingRequest) ProtoMessage() {}
 
 func (x *CreatePortMappingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[13]
+	mi := &file_node_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -869,7 +869,7 @@ func (x *CreatePortMappingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePortMappingRequest.ProtoReflect.Descriptor instead.
 func (*CreatePortMappingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{13}
+	return file_node_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreatePortMappingRequest) GetContainerId() string {
@@ -912,7 +912,7 @@ type CreatePortMappingResponse struct {
 
 func (x *CreatePortMappingResponse) Reset() {
 	*x = CreatePortMappingResponse{}
-	mi := &file_proto_node_proto_msgTypes[14]
+	mi := &file_node_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -924,7 +924,7 @@ func (x *CreatePortMappingResponse) String() string {
 func (*CreatePortMappingResponse) ProtoMessage() {}
 
 func (x *CreatePortMappingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[14]
+	mi := &file_node_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -937,7 +937,7 @@ func (x *CreatePortMappingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePortMappingResponse.ProtoReflect.Descriptor instead.
 func (*CreatePortMappingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{14}
+	return file_node_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CreatePortMappingResponse) GetSuccess() bool {
@@ -977,7 +977,7 @@ type GetPortMappingsRequest struct {
 
 func (x *GetPortMappingsRequest) Reset() {
 	*x = GetPortMappingsRequest{}
-	mi := &file_proto_node_proto_msgTypes[15]
+	mi := &file_node_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -989,7 +989,7 @@ func (x *GetPortMappingsRequest) String() string {
 func (*GetPortMappingsRequest) ProtoMessage() {}
 
 func (x *GetPortMappingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[15]
+	mi := &file_node_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1002,7 +1002,7 @@ func (x *GetPortMappingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortMappingsRequest.ProtoReflect.Descriptor instead.
 func (*GetPortMappingsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{15}
+	return file_node_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetPortMappingsRequest) GetContainerId() string {
@@ -1023,7 +1023,7 @@ type GetPortMappingsResponse struct {
 
 func (x *GetPortMappingsResponse) Reset() {
 	*x = GetPortMappingsResponse{}
-	mi := &file_proto_node_proto_msgTypes[16]
+	mi := &file_node_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1035,7 +1035,7 @@ func (x *GetPortMappingsResponse) String() string {
 func (*GetPortMappingsResponse) ProtoMessage() {}
 
 func (x *GetPortMappingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[16]
+	mi := &file_node_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1048,7 +1048,7 @@ func (x *GetPortMappingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPortMappingsResponse.ProtoReflect.Descriptor instead.
 func (*GetPortMappingsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{16}
+	return file_node_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetPortMappingsResponse) GetSuccess() bool {
@@ -1084,7 +1084,7 @@ type UpdatePortMappingRequest struct {
 
 func (x *UpdatePortMappingRequest) Reset() {
 	*x = UpdatePortMappingRequest{}
-	mi := &file_proto_node_proto_msgTypes[17]
+	mi := &file_node_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1096,7 +1096,7 @@ func (x *UpdatePortMappingRequest) String() string {
 func (*UpdatePortMappingRequest) ProtoMessage() {}
 
 func (x *UpdatePortMappingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[17]
+	mi := &file_node_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1109,7 @@ func (x *UpdatePortMappingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePortMappingRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePortMappingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{17}
+	return file_node_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdatePortMappingRequest) GetContainerId() string {
@@ -1150,7 +1150,7 @@ type UpdatePortMappingResponse struct {
 
 func (x *UpdatePortMappingResponse) Reset() {
 	*x = UpdatePortMappingResponse{}
-	mi := &file_proto_node_proto_msgTypes[18]
+	mi := &file_node_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1162,7 +1162,7 @@ func (x *UpdatePortMappingResponse) String() string {
 func (*UpdatePortMappingResponse) ProtoMessage() {}
 
 func (x *UpdatePortMappingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[18]
+	mi := &file_node_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1175,7 +1175,7 @@ func (x *UpdatePortMappingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePortMappingResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePortMappingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{18}
+	return file_node_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdatePortMappingResponse) GetSuccess() bool {
@@ -1202,7 +1202,7 @@ type DeletePortMappingRequest struct {
 
 func (x *DeletePortMappingRequest) Reset() {
 	*x = DeletePortMappingRequest{}
-	mi := &file_proto_node_proto_msgTypes[19]
+	mi := &file_node_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1214,7 +1214,7 @@ func (x *DeletePortMappingRequest) String() string {
 func (*DeletePortMappingRequest) ProtoMessage() {}
 
 func (x *DeletePortMappingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[19]
+	mi := &file_node_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1227,7 @@ func (x *DeletePortMappingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePortMappingRequest.ProtoReflect.Descriptor instead.
 func (*DeletePortMappingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{19}
+	return file_node_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeletePortMappingRequest) GetContainerId() string {
@@ -1254,7 +1254,7 @@ type DeletePortMappingResponse struct {
 
 func (x *DeletePortMappingResponse) Reset() {
 	*x = DeletePortMappingResponse{}
-	mi := &file_proto_node_proto_msgTypes[20]
+	mi := &file_node_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1266,7 +1266,7 @@ func (x *DeletePortMappingResponse) String() string {
 func (*DeletePortMappingResponse) ProtoMessage() {}
 
 func (x *DeletePortMappingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_node_proto_msgTypes[20]
+	mi := &file_node_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1279,7 +1279,7 @@ func (x *DeletePortMappingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePortMappingResponse.ProtoReflect.Descriptor instead.
 func (*DeletePortMappingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_node_proto_rawDescGZIP(), []int{20}
+	return file_node_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeletePortMappingResponse) GetSuccess() bool {
@@ -1296,11 +1296,388 @@ func (x *DeletePortMappingResponse) GetErrorMessage() string {
 	return ""
 }
 
-var File_proto_node_proto protoreflect.FileDescriptor
+type MetricsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshMs     int32                  `protobuf:"varint,1,opt,name=refresh_ms,json=refreshMs,proto3" json:"refresh_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_proto_node_proto_rawDesc = "" +
+func (x *MetricsRequest) Reset() {
+	*x = MetricsRequest{}
+	mi := &file_node_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetricsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricsRequest) ProtoMessage() {}
+
+func (x *MetricsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricsRequest.ProtoReflect.Descriptor instead.
+func (*MetricsRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *MetricsRequest) GetRefreshMs() int32 {
+	if x != nil {
+		return x.RefreshMs
+	}
+	return 0
+}
+
+type MetricsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Node          *NodeMetrics           `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	Containers    []*ContainerMetrics    `protobuf:"bytes,2,rep,name=containers,proto3" json:"containers,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MetricsResponse) Reset() {
+	*x = MetricsResponse{}
+	mi := &file_node_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetricsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetricsResponse) ProtoMessage() {}
+
+func (x *MetricsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetricsResponse.ProtoReflect.Descriptor instead.
+func (*MetricsResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *MetricsResponse) GetNode() *NodeMetrics {
+	if x != nil {
+		return x.Node
+	}
+	return nil
+}
+
+func (x *MetricsResponse) GetContainers() []*ContainerMetrics {
+	if x != nil {
+		return x.Containers
+	}
+	return nil
+}
+
+func (x *MetricsResponse) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+type NodeMetrics struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NodeId         string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	CpuPercent     float32                `protobuf:"fixed32,2,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	RamPercent     float32                `protobuf:"fixed32,3,opt,name=ram_percent,json=ramPercent,proto3" json:"ram_percent,omitempty"`
+	DiskPercent    float32                `protobuf:"fixed32,4,opt,name=disk_percent,json=diskPercent,proto3" json:"disk_percent,omitempty"`
+	NetworkRxBytes int64                  `protobuf:"varint,5,opt,name=network_rx_bytes,json=networkRxBytes,proto3" json:"network_rx_bytes,omitempty"`
+	NetworkTxBytes int64                  `protobuf:"varint,6,opt,name=network_tx_bytes,json=networkTxBytes,proto3" json:"network_tx_bytes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *NodeMetrics) Reset() {
+	*x = NodeMetrics{}
+	mi := &file_node_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeMetrics) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeMetrics) ProtoMessage() {}
+
+func (x *NodeMetrics) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeMetrics.ProtoReflect.Descriptor instead.
+func (*NodeMetrics) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *NodeMetrics) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *NodeMetrics) GetCpuPercent() float32 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *NodeMetrics) GetRamPercent() float32 {
+	if x != nil {
+		return x.RamPercent
+	}
+	return 0
+}
+
+func (x *NodeMetrics) GetDiskPercent() float32 {
+	if x != nil {
+		return x.DiskPercent
+	}
+	return 0
+}
+
+func (x *NodeMetrics) GetNetworkRxBytes() int64 {
+	if x != nil {
+		return x.NetworkRxBytes
+	}
+	return 0
+}
+
+func (x *NodeMetrics) GetNetworkTxBytes() int64 {
+	if x != nil {
+		return x.NetworkTxBytes
+	}
+	return 0
+}
+
+type ContainerMetrics struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ContainerId    string                 `protobuf:"bytes,1,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
+	CpuPercent     float32                `protobuf:"fixed32,2,opt,name=cpu_percent,json=cpuPercent,proto3" json:"cpu_percent,omitempty"`
+	RamPercent     float32                `protobuf:"fixed32,3,opt,name=ram_percent,json=ramPercent,proto3" json:"ram_percent,omitempty"`
+	DiskUsageBytes int64                  `protobuf:"varint,4,opt,name=disk_usage_bytes,json=diskUsageBytes,proto3" json:"disk_usage_bytes,omitempty"`
+	NetworkRxBytes int64                  `protobuf:"varint,5,opt,name=network_rx_bytes,json=networkRxBytes,proto3" json:"network_rx_bytes,omitempty"`
+	NetworkTxBytes int64                  `protobuf:"varint,6,opt,name=network_tx_bytes,json=networkTxBytes,proto3" json:"network_tx_bytes,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ContainerMetrics) Reset() {
+	*x = ContainerMetrics{}
+	mi := &file_node_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContainerMetrics) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContainerMetrics) ProtoMessage() {}
+
+func (x *ContainerMetrics) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContainerMetrics.ProtoReflect.Descriptor instead.
+func (*ContainerMetrics) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ContainerMetrics) GetContainerId() string {
+	if x != nil {
+		return x.ContainerId
+	}
+	return ""
+}
+
+func (x *ContainerMetrics) GetCpuPercent() float32 {
+	if x != nil {
+		return x.CpuPercent
+	}
+	return 0
+}
+
+func (x *ContainerMetrics) GetRamPercent() float32 {
+	if x != nil {
+		return x.RamPercent
+	}
+	return 0
+}
+
+func (x *ContainerMetrics) GetDiskUsageBytes() int64 {
+	if x != nil {
+		return x.DiskUsageBytes
+	}
+	return 0
+}
+
+func (x *ContainerMetrics) GetNetworkRxBytes() int64 {
+	if x != nil {
+		return x.NetworkRxBytes
+	}
+	return 0
+}
+
+func (x *ContainerMetrics) GetNetworkTxBytes() int64 {
+	if x != nil {
+		return x.NetworkTxBytes
+	}
+	return 0
+}
+
+type ContainerMetricsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContainerId   string                 `protobuf:"bytes,1,opt,name=container_id,json=containerId,proto3" json:"container_id,omitempty"`
+	RefreshMs     int32                  `protobuf:"varint,2,opt,name=refresh_ms,json=refreshMs,proto3" json:"refresh_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContainerMetricsRequest) Reset() {
+	*x = ContainerMetricsRequest{}
+	mi := &file_node_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContainerMetricsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContainerMetricsRequest) ProtoMessage() {}
+
+func (x *ContainerMetricsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContainerMetricsRequest.ProtoReflect.Descriptor instead.
+func (*ContainerMetricsRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ContainerMetricsRequest) GetContainerId() string {
+	if x != nil {
+		return x.ContainerId
+	}
+	return ""
+}
+
+func (x *ContainerMetricsRequest) GetRefreshMs() int32 {
+	if x != nil {
+		return x.RefreshMs
+	}
+	return 0
+}
+
+type ContainerMetricsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metrics       *ContainerMetrics      `protobuf:"bytes,1,opt,name=metrics,proto3" json:"metrics,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContainerMetricsResponse) Reset() {
+	*x = ContainerMetricsResponse{}
+	mi := &file_node_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContainerMetricsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContainerMetricsResponse) ProtoMessage() {}
+
+func (x *ContainerMetricsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContainerMetricsResponse.ProtoReflect.Descriptor instead.
+func (*ContainerMetricsResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ContainerMetricsResponse) GetMetrics() *ContainerMetrics {
+	if x != nil {
+		return x.Metrics
+	}
+	return nil
+}
+
+func (x *ContainerMetricsResponse) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+var File_node_proto protoreflect.FileDescriptor
+
+const file_node_proto_rawDesc = "" +
 	"\n" +
-	"\x10proto/node.proto\x12\x04node\"\x96\x01\n" +
+	"\n" +
+	"node.proto\x12\x04node\"\x96\x01\n" +
 	"\rCreateRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05image\x18\x05 \x01(\tR\x05image\x12\x10\n" +
@@ -1383,13 +1760,47 @@ const file_proto_node_proto_rawDesc = "" +
 	"mapping_id\x18\x02 \x01(\tR\tmappingId\"Z\n" +
 	"\x19DeletePortMappingResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage*P\n" +
+	"\rerror_message\x18\x02 \x01(\tR\ferrorMessage\"/\n" +
+	"\x0eMetricsRequest\x12\x1d\n" +
+	"\n" +
+	"refresh_ms\x18\x01 \x01(\x05R\trefreshMs\"\x8e\x01\n" +
+	"\x0fMetricsResponse\x12%\n" +
+	"\x04node\x18\x01 \x01(\v2\x11.node.NodeMetricsR\x04node\x126\n" +
+	"\n" +
+	"containers\x18\x02 \x03(\v2\x16.node.ContainerMetricsR\n" +
+	"containers\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\"\xdf\x01\n" +
+	"\vNodeMetrics\x12\x17\n" +
+	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x1f\n" +
+	"\vcpu_percent\x18\x02 \x01(\x02R\n" +
+	"cpuPercent\x12\x1f\n" +
+	"\vram_percent\x18\x03 \x01(\x02R\n" +
+	"ramPercent\x12!\n" +
+	"\fdisk_percent\x18\x04 \x01(\x02R\vdiskPercent\x12(\n" +
+	"\x10network_rx_bytes\x18\x05 \x01(\x03R\x0enetworkRxBytes\x12(\n" +
+	"\x10network_tx_bytes\x18\x06 \x01(\x03R\x0enetworkTxBytes\"\xf5\x01\n" +
+	"\x10ContainerMetrics\x12!\n" +
+	"\fcontainer_id\x18\x01 \x01(\tR\vcontainerId\x12\x1f\n" +
+	"\vcpu_percent\x18\x02 \x01(\x02R\n" +
+	"cpuPercent\x12\x1f\n" +
+	"\vram_percent\x18\x03 \x01(\x02R\n" +
+	"ramPercent\x12(\n" +
+	"\x10disk_usage_bytes\x18\x04 \x01(\x03R\x0ediskUsageBytes\x12(\n" +
+	"\x10network_rx_bytes\x18\x05 \x01(\x03R\x0enetworkRxBytes\x12(\n" +
+	"\x10network_tx_bytes\x18\x06 \x01(\x03R\x0enetworkTxBytes\"[\n" +
+	"\x17ContainerMetricsRequest\x12!\n" +
+	"\fcontainer_id\x18\x01 \x01(\tR\vcontainerId\x12\x1d\n" +
+	"\n" +
+	"refresh_ms\x18\x02 \x01(\x05R\trefreshMs\"j\n" +
+	"\x18ContainerMetricsResponse\x120\n" +
+	"\ametrics\x18\x01 \x01(\v2\x16.node.ContainerMetricsR\ametrics\x12\x1c\n" +
+	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp*P\n" +
 	"\x0fContainerStatus\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\v\n" +
 	"\aRUNNING\x10\x02\x12\v\n" +
 	"\aSTOPPED\x10\x03\x12\t\n" +
-	"\x05ERROR\x10\x042\xb8\x05\n" +
+	"\x05ERROR\x10\x042\xd3\x06\n" +
 	"\vNodeService\x126\n" +
 	"\tCreateVPS\x12\x13.node.CreateRequest\x1a\x14.node.CreateResponse\x12-\n" +
 	"\x06GetVPS\x12\x10.node.GetRequest\x1a\x11.node.GetResponse\x12?\n" +
@@ -1401,23 +1812,25 @@ const file_proto_node_proto_rawDesc = "" +
 	"\x11CreatePortMapping\x12\x1e.node.CreatePortMappingRequest\x1a\x1f.node.CreatePortMappingResponse\x12N\n" +
 	"\x0fGetPortMappings\x12\x1c.node.GetPortMappingsRequest\x1a\x1d.node.GetPortMappingsResponse\x12T\n" +
 	"\x11UpdatePortMapping\x12\x1e.node.UpdatePortMappingRequest\x1a\x1f.node.UpdatePortMappingResponse\x12T\n" +
-	"\x11DeletePortMapping\x12\x1e.node.DeletePortMappingRequest\x1a\x1f.node.DeletePortMappingResponseB1Z/github.com/wydentis/iaas-mvp/backend/proto/nodeb\x06proto3"
+	"\x11DeletePortMapping\x12\x1e.node.DeletePortMappingRequest\x1a\x1f.node.DeletePortMappingResponse\x12>\n" +
+	"\rStreamMetrics\x12\x14.node.MetricsRequest\x1a\x15.node.MetricsResponse0\x01\x12Y\n" +
+	"\x16StreamContainerMetrics\x12\x1d.node.ContainerMetricsRequest\x1a\x1e.node.ContainerMetricsResponse0\x01B1Z/github.com/wydentis/iaas-mvp/backend/proto/nodeb\x06proto3"
 
 var (
-	file_proto_node_proto_rawDescOnce sync.Once
-	file_proto_node_proto_rawDescData []byte
+	file_node_proto_rawDescOnce sync.Once
+	file_node_proto_rawDescData []byte
 )
 
-func file_proto_node_proto_rawDescGZIP() []byte {
-	file_proto_node_proto_rawDescOnce.Do(func() {
-		file_proto_node_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_node_proto_rawDesc), len(file_proto_node_proto_rawDesc)))
+func file_node_proto_rawDescGZIP() []byte {
+	file_node_proto_rawDescOnce.Do(func() {
+		file_node_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)))
 	})
-	return file_proto_node_proto_rawDescData
+	return file_node_proto_rawDescData
 }
 
-var file_proto_node_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_node_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
-var file_proto_node_proto_goTypes = []any{
+var file_node_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_node_proto_goTypes = []any{
 	(ContainerStatus)(0),              // 0: node.ContainerStatus
 	(*CreateRequest)(nil),             // 1: node.CreateRequest
 	(*CreateResponse)(nil),            // 2: node.CreateResponse
@@ -1440,59 +1853,72 @@ var file_proto_node_proto_goTypes = []any{
 	(*UpdatePortMappingResponse)(nil), // 19: node.UpdatePortMappingResponse
 	(*DeletePortMappingRequest)(nil),  // 20: node.DeletePortMappingRequest
 	(*DeletePortMappingResponse)(nil), // 21: node.DeletePortMappingResponse
+	(*MetricsRequest)(nil),            // 22: node.MetricsRequest
+	(*MetricsResponse)(nil),           // 23: node.MetricsResponse
+	(*NodeMetrics)(nil),               // 24: node.NodeMetrics
+	(*ContainerMetrics)(nil),          // 25: node.ContainerMetrics
+	(*ContainerMetricsRequest)(nil),   // 26: node.ContainerMetricsRequest
+	(*ContainerMetricsResponse)(nil),  // 27: node.ContainerMetricsResponse
 }
-var file_proto_node_proto_depIdxs = []int32{
+var file_node_proto_depIdxs = []int32{
 	0,  // 0: node.GetResponse.status:type_name -> node.ContainerStatus
 	0,  // 1: node.SetStatusRequest.status:type_name -> node.ContainerStatus
 	13, // 2: node.GetPortMappingsResponse.mappings:type_name -> node.PortMapping
-	1,  // 3: node.NodeService.CreateVPS:input_type -> node.CreateRequest
-	3,  // 4: node.NodeService.GetVPS:input_type -> node.GetRequest
-	5,  // 5: node.NodeService.SetVPSStatus:input_type -> node.SetStatusRequest
-	7,  // 6: node.NodeService.DeleteVPS:input_type -> node.DeleteRequest
-	9,  // 7: node.NodeService.UpdateVPS:input_type -> node.UpdateRequest
-	11, // 8: node.NodeService.RunCommand:input_type -> node.RunCommandRequest
-	14, // 9: node.NodeService.CreatePortMapping:input_type -> node.CreatePortMappingRequest
-	16, // 10: node.NodeService.GetPortMappings:input_type -> node.GetPortMappingsRequest
-	18, // 11: node.NodeService.UpdatePortMapping:input_type -> node.UpdatePortMappingRequest
-	20, // 12: node.NodeService.DeletePortMapping:input_type -> node.DeletePortMappingRequest
-	2,  // 13: node.NodeService.CreateVPS:output_type -> node.CreateResponse
-	4,  // 14: node.NodeService.GetVPS:output_type -> node.GetResponse
-	6,  // 15: node.NodeService.SetVPSStatus:output_type -> node.SetStatusResponse
-	8,  // 16: node.NodeService.DeleteVPS:output_type -> node.DeleteResponse
-	10, // 17: node.NodeService.UpdateVPS:output_type -> node.UpdateResponse
-	12, // 18: node.NodeService.RunCommand:output_type -> node.RunCommandResponse
-	15, // 19: node.NodeService.CreatePortMapping:output_type -> node.CreatePortMappingResponse
-	17, // 20: node.NodeService.GetPortMappings:output_type -> node.GetPortMappingsResponse
-	19, // 21: node.NodeService.UpdatePortMapping:output_type -> node.UpdatePortMappingResponse
-	21, // 22: node.NodeService.DeletePortMapping:output_type -> node.DeletePortMappingResponse
-	13, // [13:23] is the sub-list for method output_type
-	3,  // [3:13] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	24, // 3: node.MetricsResponse.node:type_name -> node.NodeMetrics
+	25, // 4: node.MetricsResponse.containers:type_name -> node.ContainerMetrics
+	25, // 5: node.ContainerMetricsResponse.metrics:type_name -> node.ContainerMetrics
+	1,  // 6: node.NodeService.CreateVPS:input_type -> node.CreateRequest
+	3,  // 7: node.NodeService.GetVPS:input_type -> node.GetRequest
+	5,  // 8: node.NodeService.SetVPSStatus:input_type -> node.SetStatusRequest
+	7,  // 9: node.NodeService.DeleteVPS:input_type -> node.DeleteRequest
+	9,  // 10: node.NodeService.UpdateVPS:input_type -> node.UpdateRequest
+	11, // 11: node.NodeService.RunCommand:input_type -> node.RunCommandRequest
+	14, // 12: node.NodeService.CreatePortMapping:input_type -> node.CreatePortMappingRequest
+	16, // 13: node.NodeService.GetPortMappings:input_type -> node.GetPortMappingsRequest
+	18, // 14: node.NodeService.UpdatePortMapping:input_type -> node.UpdatePortMappingRequest
+	20, // 15: node.NodeService.DeletePortMapping:input_type -> node.DeletePortMappingRequest
+	22, // 16: node.NodeService.StreamMetrics:input_type -> node.MetricsRequest
+	26, // 17: node.NodeService.StreamContainerMetrics:input_type -> node.ContainerMetricsRequest
+	2,  // 18: node.NodeService.CreateVPS:output_type -> node.CreateResponse
+	4,  // 19: node.NodeService.GetVPS:output_type -> node.GetResponse
+	6,  // 20: node.NodeService.SetVPSStatus:output_type -> node.SetStatusResponse
+	8,  // 21: node.NodeService.DeleteVPS:output_type -> node.DeleteResponse
+	10, // 22: node.NodeService.UpdateVPS:output_type -> node.UpdateResponse
+	12, // 23: node.NodeService.RunCommand:output_type -> node.RunCommandResponse
+	15, // 24: node.NodeService.CreatePortMapping:output_type -> node.CreatePortMappingResponse
+	17, // 25: node.NodeService.GetPortMappings:output_type -> node.GetPortMappingsResponse
+	19, // 26: node.NodeService.UpdatePortMapping:output_type -> node.UpdatePortMappingResponse
+	21, // 27: node.NodeService.DeletePortMapping:output_type -> node.DeletePortMappingResponse
+	23, // 28: node.NodeService.StreamMetrics:output_type -> node.MetricsResponse
+	27, // 29: node.NodeService.StreamContainerMetrics:output_type -> node.ContainerMetricsResponse
+	18, // [18:30] is the sub-list for method output_type
+	6,  // [6:18] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_proto_node_proto_init() }
-func file_proto_node_proto_init() {
-	if File_proto_node_proto != nil {
+func init() { file_node_proto_init() }
+func file_node_proto_init() {
+	if File_node_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_node_proto_rawDesc), len(file_proto_node_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   21,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_node_proto_goTypes,
-		DependencyIndexes: file_proto_node_proto_depIdxs,
-		EnumInfos:         file_proto_node_proto_enumTypes,
-		MessageInfos:      file_proto_node_proto_msgTypes,
+		GoTypes:           file_node_proto_goTypes,
+		DependencyIndexes: file_node_proto_depIdxs,
+		EnumInfos:         file_node_proto_enumTypes,
+		MessageInfos:      file_node_proto_msgTypes,
 	}.Build()
-	File_proto_node_proto = out.File
-	file_proto_node_proto_goTypes = nil
-	file_proto_node_proto_depIdxs = nil
+	File_node_proto = out.File
+	file_node_proto_goTypes = nil
+	file_node_proto_depIdxs = nil
 }

@@ -33,6 +33,10 @@ func NewLXD(path string) (*LXD, error) {
 	return &LXD{c}, err
 }
 
+func (l *LXD) GetClient() lxd.InstanceServer {
+	return l.client
+}
+
 func (l *LXD) CreateContainer(name, image string, specs container.Specs, startScript string) (string, error) {
 	visibleCores := int(math.Ceil(float64(specs.CPUPercent) / 100))
 
