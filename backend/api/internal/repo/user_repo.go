@@ -1,0 +1,323 @@
+package repo
+
+import (
+	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/wydentis/iaas-mvp/api/internal/models"
+	"github.com/wydentis/iaas-mvp/api/internal/storage"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFound      = errors.New("user not found")
+)
+
+type UserRepository struct {
+	Storage storage.Storage
+}
+
+func NewUserRepository(stg storage.Storage) *UserRepository {
+	return &UserRepository{stg}
+}
+
+func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) error {
+	query := `
+		INSERT INTO users (username, name, surname, email, phone, password_hash, role)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING user_id, created_at, updated_at
+	`
+
+	if user.Role == "" {
+		user.Role = "user"
+	}
+
+	err := r.Storage.Pool.QueryRow(ctx, query,
+		user.Username,
+		user.Name,
+		user.Surname,
+		user.Email,
+		user.Phone,
+		user.PasswordHash,
+		user.Role,
+	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrUserAlreadyExists
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepository) GetUserByID(ctx context.Context, userID string) (*models.User, error) {
+	user := &models.User{}
+	query := `
+		SELECT *
+		FROM users
+		WHERE user_id = $1
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query, userID).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Name,
+		&user.Surname,
+		&user.Email,
+		&user.Phone,
+		&user.Balance,
+		&user.Role,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (r *UserRepository) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	user := &models.User{}
+	query := `
+		SELECT *
+		FROM users
+		WHERE username = $1
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query, username).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Name,
+		&user.Surname,
+		&user.Email,
+		&user.Phone,
+		&user.Balance,
+		&user.Role,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	user := &models.User{}
+	query := `
+		SELECT *
+		FROM users
+		WHERE email = $1
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query, email).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Name,
+		&user.Surname,
+		&user.Email,
+		&user.Phone,
+		&user.Balance,
+		&user.Role,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (r *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*models.User, error) {
+	user := &models.User{}
+	query := `
+		SELECT *
+		FROM users
+		WHERE phone = $1
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query, phone).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Name,
+		&user.Surname,
+		&user.Email,
+		&user.Phone,
+		&user.Balance,
+		&user.Role,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (r *UserRepository) UpdateUserInfo(ctx context.Context, user *models.User) (*models.User, error) {
+	query := `
+		UPDATE users
+		SET name = $2, surname = $3, email = $4, phone = $5, updated_at = NOW()
+		WHERE user_id = $1
+		RETURNING updated_at
+	`
+	err := r.Storage.Pool.QueryRow(ctx, query,
+		user.ID,
+		user.Name,
+		user.Surname,
+		user.Email,
+		user.Phone,
+	).Scan(&user.UpdatedAt)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrUserAlreadyExists
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = $2, updated_at = NOW()
+		WHERE user_id = $1
+	`
+	commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, passwordHash)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (r *UserRepository) GetBalance(ctx context.Context, userID string) (*models.UserBalance, error) {
+	query := `
+		SELECT balance
+		FROM users
+		WHERE user_id = $1
+	`
+
+	var balance models.UserBalance
+	err := r.Storage.Pool.QueryRow(ctx, query, userID).Scan(&balance.Amount)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &balance, nil
+}
+
+func (r *UserRepository) ChangeBalance(ctx context.Context, userID string, amount int) error {
+	query := `
+		UPDATE users
+		SET balance = balance + $2, updated_at = NOW()
+		WHERE user_id = $1
+	`
+	commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, amount)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (r *UserRepository) ListUsers(ctx context.Context) ([]*models.User, error) {
+	query := `
+		SELECT *
+		FROM users
+	`
+	rows, err := r.Storage.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Phone,
+			&user.Balance,
+			&user.Role,
+			&user.PasswordHash,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepository) SearchUsers(ctx context.Context, query string) ([]*models.User, error) {
+	sql := `
+		SELECT *
+		FROM users
+		WHERE username ILIKE $1 OR name ILIKE $1 OR surname ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1
+	`
+	pattern := "%" + query + "%"
+	rows, err := r.Storage.Pool.Query(ctx, sql, pattern)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*models.User
+	for rows.Next() {
+		user := &models.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Name,
+			&user.Surname,
+			&user.Email,
+			&user.Phone,
+			&user.Balance,
+			&user.Role,
+			&user.PasswordHash,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}

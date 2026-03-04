@@ -1,0 +1,185 @@
+syntax = "proto3";
+package node;
+option go_package = "github.com/wydentis/iaas-mvp/backend/proto/node";
+
+service NodeService {
+    rpc CreateVPS (CreateRequest) returns (CreateResponse);
+    rpc GetVPS (GetRequest) returns (GetResponse);
+    rpc SetVPSStatus (SetStatusRequest) returns (SetStatusResponse);
+    rpc DeleteVPS (DeleteRequest) returns (DeleteResponse);
+    rpc UpdateVPS (UpdateRequest) returns (UpdateResponse);
+    rpc RunCommand (RunCommandRequest) returns (RunCommandResponse);
+    rpc CreatePortMapping (CreatePortMappingRequest) returns (CreatePortMappingResponse);
+    rpc GetPortMappings (GetPortMappingsRequest) returns (GetPortMappingsResponse);
+    rpc UpdatePortMapping (UpdatePortMappingRequest) returns (UpdatePortMappingResponse);
+    rpc DeletePortMapping (DeletePortMappingRequest) returns (DeletePortMappingResponse);
+    rpc StreamMetrics (MetricsRequest) returns (stream MetricsResponse);
+    rpc StreamContainerMetrics (ContainerMetricsRequest) returns (stream ContainerMetricsResponse);
+};
+
+enum ContainerStatus {
+    UNKNOWN = 0;
+    PENDING = 1;
+    RUNNING = 2;
+    STOPPED = 3;
+    ERROR = 4;
+}
+
+message CreateRequest {
+    string id = 1;
+    string image = 5;
+    int32 cpu = 2;
+    int32 ram = 3;
+    int32 storage = 4;
+    string start_script = 6;
+}
+
+message CreateResponse {
+    bool success = 1;
+    string error_message = 2;
+    string ipv4 = 3;
+}
+
+message GetRequest {
+    string id = 1;
+}
+
+message GetResponse {
+    string id = 1;
+    ContainerStatus status = 2;
+    string ipv4 = 3; 
+    string error_message = 4;
+}
+
+message SetStatusRequest {
+    string id = 1;
+    ContainerStatus status = 2;
+}
+
+message SetStatusResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message DeleteRequest {
+    string id = 1;
+}
+
+message DeleteResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message UpdateRequest {
+    string id = 1;
+    int32 cpu = 2;
+    int32 ram = 3;
+    int32 storage = 4;
+}
+
+message UpdateResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message RunCommandRequest {
+    string id = 1;
+    string command = 2;
+}
+
+message RunCommandResponse {
+    bool success = 1;
+    string output = 2;
+    string error_message = 3;
+}
+
+message PortMapping {
+    string id = 1;
+    int32 host_port = 2;
+    int32 container_port = 3;
+    string protocol = 4;
+}
+
+message CreatePortMappingRequest {
+    string container_id = 1;
+    int32 container_port = 2;
+    int32 host_port = 3;
+    string protocol = 4;
+}
+
+message CreatePortMappingResponse {
+    bool success = 1;
+    string error_message = 2;
+    string mapping_id = 3;
+    int32 host_port = 4;
+}
+
+message GetPortMappingsRequest {
+    string container_id = 1;
+}
+
+message GetPortMappingsResponse {
+    bool success = 1;
+    string error_message = 2;
+    repeated PortMapping mappings = 3;
+}
+
+message UpdatePortMappingRequest {
+    string container_id = 1;
+    string mapping_id = 2;
+    int32 host_port = 3;
+    int32 container_port = 4;
+}
+
+message UpdatePortMappingResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message DeletePortMappingRequest {
+    string container_id = 1;
+    string mapping_id = 2;
+}
+
+message DeletePortMappingResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message MetricsRequest {
+    int32 refresh_ms = 1;
+}
+
+message MetricsResponse {
+    NodeMetrics node = 1;
+    repeated ContainerMetrics containers = 2;
+    int64 timestamp = 3;
+}
+
+message NodeMetrics {
+    string node_id = 1;
+    float cpu_percent = 2;
+    float ram_percent = 3;
+    float disk_percent = 4;
+    int64 network_rx_bytes = 5;
+    int64 network_tx_bytes = 6;
+}
+
+message ContainerMetrics {
+    string container_id = 1;
+    float cpu_percent = 2;
+    float ram_percent = 3;
+    int64 disk_usage_bytes = 4;
+    int64 network_rx_bytes = 5;
+    int64 network_tx_bytes = 6;
+}
+
+message ContainerMetricsRequest {
+    string container_id = 1;
+    int32 refresh_ms = 2;
+}
+
+message ContainerMetricsResponse {
+    ContainerMetrics metrics = 1;
+    int64 timestamp = 2;
+}

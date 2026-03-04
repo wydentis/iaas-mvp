@@ -1,0 +1,11 @@
+{
+  "port": 8080,
+  "jwt_secret": "${JWT_SECRET}",
+  "db_config": {
+    "user": "${DB_USER}",
+    "password": "${DB_PASSWORD}",
+    "db_name": "${DB_NAME}",
+    "db_host": "${DB_HOST}"
+  },
+  "rabbitmq_url": "${RABBITMQ_URL}"
+}

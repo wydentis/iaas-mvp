@@ -1,0 +1,114 @@
+.header {
+  background: #e8e8e8;
+  border-bottom: 1px solid #ccc;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  text-decoration: none;
+}
+
+.logo-text {
+  color: #c41e3a;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.2;
+  border: 2px solid #c41e3a;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.balance-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.balance-amount {
+  font-weight: bold;
+}
+
+.balance-days {
+  background: #c41e3a;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.user-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.username {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.username::after {
+  content: '▼';
+  font-size: 0.8rem;
+}
+
+.user-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  min-width: 200px;
+}
+
+.user-menu:hover .user-dropdown {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+  padding: 0.75rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+  width: 100%;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: #f5f5f5;
+}
