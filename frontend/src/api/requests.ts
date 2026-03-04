@@ -157,6 +157,22 @@ export interface Node {
   disk_space: number;
 }
 
+export interface PortMapping {
+  id: string;
+  container_id: string;
+  host_port: number;
+  container_port: number;
+  protocol: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePortMappingPayload {
+  container_port: number;
+  host_port?: number;
+  protocol: string;
+}
+
 // ── Container requests ────────────────────────────────────────────────────────
 export async function listContainers(): Promise<Container[]> {
   try {
@@ -192,11 +208,72 @@ export async function setContainerStatus(id: string, status: ContainerStatus): P
   }
 }
 
+export async function getContainer(id: string): Promise<Container> {
+  try {
+    const { data } = await api.get<Container>(`/vps/${id}`, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function updateContainerInfo(id: string, name: string): Promise<void> {
+  try {
+    await api.put(`/vps/${id}/info`, { name }, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function runCommand(id: string, command: string): Promise<string> {
+  try {
+    const { data } = await api.post<{ output: string }>(`/vps/${id}/command`, { command }, { headers: authHeaders() });
+    return data.output;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function getPortMappings(id: string): Promise<PortMapping[]> {
+  try {
+    const { data } = await api.get<PortMapping[]>(`/vps/${id}/ports`, { headers: authHeaders() });
+    return data ?? [];
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function createPortMapping(id: string, payload: CreatePortMappingPayload): Promise<PortMapping> {
+  try {
+    const { data } = await api.post<PortMapping>(`/vps/${id}/ports`, payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function deletePortMapping(id: string, mappingId: string): Promise<void> {
+  try {
+    await api.delete(`/vps/${id}/ports/${mappingId}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
 // ── Node requests ─────────────────────────────────────────────────────────────
 export async function listPublicNodes(): Promise<Node[]> {
   try {
     const { data } = await api.get<Node[]>("/nodes");
     return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── Balance ───────────────────────────────────────────────────────────────────
+export async function changeBalance(amount: number): Promise<void> {
+  try {
+    await api.put("/user/balance", { amount }, { headers: authHeaders() });
   } catch (err) {
     throw new Error(extractMessage(err));
   }

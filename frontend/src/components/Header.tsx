@@ -34,15 +34,28 @@ export default function Header() {
       </Link>
 
       {/* Правая часть */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {isLoggedIn ? (
           <>
-            <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-sm text-white">
-              <span className="text-xs text-red-300">Баланс</span>
-              <span className="font-semibold">
-                {balance !== null ? `${balance.toLocaleString()} ₽` : "—"}
-              </span>
+            {/* Balance + top-up */}
+            <div className="flex items-center overflow-hidden rounded-xl border border-white/15">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-white">
+                <span className="text-xs text-red-300">Баланс</span>
+                <span className="font-semibold">
+                  {balance !== null ? `${balance.toLocaleString()} ₽` : "—"}
+                </span>
+              </div>
+              <Link
+                to="/topup"
+                className="flex items-center gap-1 border-l border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Пополнить
+              </Link>
             </div>
+
             <Link
               to="/dashboard"
               className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"

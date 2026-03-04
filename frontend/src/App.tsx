@@ -4,6 +4,9 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
+import NewServer from "./pages/NewServer";
+import ServerDetail from "./pages/ServerDetail";
+import TopUp from "./pages/TopUp";
 
 export default function App() {
   return (
@@ -13,7 +16,10 @@ export default function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/servers/new" element={<NewServer />} />
+        <Route path="/servers/:id" element={<ServerDetail />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/topup" element={<TopUp />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
