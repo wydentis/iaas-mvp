@@ -8,9 +8,24 @@ type Mode = "username" | "email" | "phone";
 
 const MODES: { key: Mode; label: string; type: string; placeholder: string }[] =
   [
-    { key: "username", label: "Логин",    type: "text",  placeholder: "Введите логин" },
-    { key: "email",    label: "Email",    type: "email", placeholder: "you@example.com" },
-    { key: "phone",    label: "Телефон",  type: "tel",   placeholder: "+676 (67) 676-67-67" },
+    {
+      key: "username",
+      label: "Логин",
+      type: "text",
+      placeholder: "Введите логин",
+    },
+    {
+      key: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "you@example.com",
+    },
+    {
+      key: "phone",
+      label: "Телефон",
+      type: "tel",
+      placeholder: "+375 (29) 123-45-67",
+    },
   ];
 
 const inputCls =
@@ -54,7 +69,7 @@ export default function SignIn() {
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-md rounded-2xl bg-white px-8 py-10 shadow-2xl ring-1 ring-black/5">
           {/* Title */}
-          <h1 className="mb-1 text-center text-3xl font-black tracking-tight text-red-900">
+          <h1 className="mb-1 text-center text-3xl font-black tracking-tight text-red-700">
             Войти
           </h1>
           <p className="mb-8 text-center text-sm text-gray-400">
@@ -70,7 +85,7 @@ export default function SignIn() {
                 onClick={() => handleModeChange(key)}
                 className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all duration-200 ${
                   mode === key
-                    ? "bg-white text-red-900 shadow-sm"
+                    ? "bg-white text-red-700 shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -122,18 +137,19 @@ export default function SignIn() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full overflow-hidden rounded-xl bg-red-900 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-red-800 disabled:opacity-60"
+              className="group relative w-full overflow-hidden rounded-xl bg-red-700 py-3 text-sm font-bold text-white transition-all duration-200 hover:bg-red-800 disabled:opacity-60"
             >
               <span className="absolute inset-0 translate-x-[-100%] skew-x-[-20deg] bg-white/10 transition-transform duration-500 group-hover:translate-x-[200%]" />
-              <span className="relative">
-                {loading ? "Вход…" : "Войти"}
-              </span>
+              <span className="relative">{loading ? "Вход…" : "Войти"}</span>
             </button>
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-400">
             Нет аккаунта?{" "}
-            <Link to="/signup" className="font-semibold text-red-900 hover:underline">
+            <Link
+              to="/signup"
+              className="font-semibold text-red-700 hover:underline"
+            >
               Зарегистрироваться
             </Link>
           </p>

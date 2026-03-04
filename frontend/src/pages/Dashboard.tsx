@@ -121,8 +121,8 @@ export default function Dashboard() {
         {/* ── Top bar ── */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-black text-white">Мои серверы</h1>
-            <p className="mt-0.5 text-sm text-red-200/50">
+            <h1 className="text-2xl font-black text-gray-900">Мои серверы</h1>
+            <p className="mt-0.5 text-sm text-gray-500">
               {!loading &&
                 `${containers.length} сервер${containers.length === 1 ? "" : containers.length < 5 ? "а" : "ов"}`}
             </p>
@@ -149,14 +149,14 @@ export default function Dashboard() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Поиск серверов…"
-                className="w-56 rounded-xl border border-white/15 bg-white/10 py-2.5 pr-4 pl-9 text-sm text-white backdrop-blur-sm transition outline-none placeholder:text-red-200/40 focus:border-white/30 focus:bg-white/15"
+                className="w-56 rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-9 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
               />
             </div>
 
             {/* Create button */}
             <button
               onClick={() => navigate("/servers/new")}
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-red-900 shadow-lg transition hover:bg-red-50 hover:shadow-red-900/20"
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-red-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-600"
             >
               <span className="absolute inset-0 translate-x-[-100%] skew-x-[-20deg] bg-red-100/50 transition-transform duration-500 group-hover:translate-x-[200%]" />
               <svg
@@ -179,7 +179,7 @@ export default function Dashboard() {
 
         {/* ── Content ── */}
         {loading ? (
-          <div className="flex flex-col items-center py-24 text-red-200/50">
+          <div className="flex flex-col items-center py-24 text-gray-400">
             <svg
               className="mb-3 h-8 w-8 animate-spin"
               fill="none"
@@ -202,7 +202,7 @@ export default function Dashboard() {
             Загрузка…
           </div>
         ) : error ? (
-          <div className="rounded-2xl bg-red-900/30 px-6 py-5 text-center text-sm text-red-300 backdrop-blur-sm">
+          <div className="rounded-2xl bg-red-50 px-6 py-5 text-center text-sm text-red-700 ring-1 ring-red-200">
             {error}
             <button
               onClick={load}
@@ -213,9 +213,9 @@ export default function Dashboard() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-24 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
               <svg
-                className="h-8 w-8 text-red-300/60"
+                className="h-8 w-8 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -228,13 +228,13 @@ export default function Dashboard() {
                 />
               </svg>
             </div>
-            <p className="text-white/60">
+            <p className="text-gray-500">
               {search ? "Серверы не найдены" : "У вас пока нет серверов"}
             </p>
             {!search && (
               <button
                 onClick={() => navigate("/servers/new")}
-                className="mt-4 rounded-xl bg-white/10 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                className="mt-4 rounded-xl bg-red-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
               >
                 Создать первый сервер
               </button>

@@ -67,6 +67,19 @@
 }
 
 @theme {
+  /* MTS Hackathon palette — all reds derived from #B42124 */
+  --color-red-50:  #f9e6e6;
+  --color-red-100: #f2cccc;
+  --color-red-200: #e59999;
+  --color-red-300: #d56667;
+  --color-red-400: #c83335;
+  --color-red-500: #be2224;
+  --color-red-600: #b92123;
+  --color-red-700: #B42124;
+  --color-red-800: #8f1a1c;
+  --color-red-900: #6a1315;
+  --color-red-950: #3f0b0c;
+
   --animate-blob1:        blob1 8s ease-in-out infinite;
   --animate-blob2:        blob2 11s ease-in-out infinite;
   --animate-blob3:        blob3 9s ease-in-out infinite;
@@ -78,4 +91,35 @@
   --animate-slow-bounce:  slow-bounce 2s ease-in-out infinite;
   --animate-fade-slide-in: fade-slide-in 0.22s ease-out;
   --animate-slide-up:      slide-up 0.25s ease-out;
+}
+
+@layer base {
+  @media (max-width: 850px) {
+    :root {
+      font-size: 15px;
+    }
+
+    main,
+    section {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      word-break: break-word;
+    }
+
+    table {
+      width: 100%;
+    }
+
+    table th,
+    table td {
+      white-space: normal;
+      word-break: break-word;
+    }
+  }
 }

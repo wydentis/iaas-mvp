@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getCookie } from "./cookies";
+import { createMetricsSocket } from "../api/requests";
 
 export interface MetricsPoint {
   timestamp: number;
@@ -11,10 +11,6 @@ export interface MetricsPoint {
 }
 
 const MAX_POINTS = 60;
-const BASE_URL = import.meta.env.DEV
-  ? "ws://localhost:5173/api"
-  : "wss://serverdam.wydentis.xyz/api";
-
 export function useContainerMetrics(containerId: string, enabled: boolean) {
   const [history, setHistory] = useState<MetricsPoint[]>([]);
   const [connected, setConnected] = useState(false);
@@ -24,9 +20,7 @@ export function useContainerMetrics(containerId: string, enabled: boolean) {
   useEffect(() => {
     if (!enabled || !containerId) return;
 
-    const token = getCookie("access_token") ?? "";
-    const url = `${BASE_URL}/vps/${containerId}/metrics?token=${encodeURIComponent(token)}&refresh_ms=1000`;
-    const ws = new WebSocket(url);
+    const ws = createMetricsSocket(containerId, 1000);
     wsRef.current = ws;
     setError(null);
     setHistory([]);

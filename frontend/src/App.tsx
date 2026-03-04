@@ -8,6 +8,7 @@ import NewServer from "./pages/NewServer";
 import ServerDetail from "./pages/ServerDetail";
 import TopUp from "./pages/TopUp";
 import Admin from "./pages/Admin";
+import Networks from "./pages/Networks";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/servers/:id" element={<ServerDetail />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/topup" element={<TopUp />} />
+        <Route path="/networks" element={<Networks />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

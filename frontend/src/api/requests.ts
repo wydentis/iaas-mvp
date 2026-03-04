@@ -5,12 +5,18 @@ import { setCookie, getCookie, removeCookie } from "../utils/cookies";
 // ── Axios client ──────────────────────────────────────────────────────────────
 // In dev, Vite proxies /auth /user /vps /nodes → backend (no CORS needed).
 // In production, requests go directly to the backend origin.
-const BASE_URL = import.meta.env.DEV ? "/api" : "https://serverdam.wydentis.xyz/api";
+const BASE_URL = "/api";
+const WS_BASE  = "api";
 
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
+
+export function buildWsUrl(path: string) {
+  if (!path.startsWith("/")) path = "/" + path;
+  return `${WS_BASE}${path}`;
+}
 
 // ── Request interceptor: inject Authorization header ─────────────────────────
 api.interceptors.request.use((config) => {
@@ -213,6 +219,12 @@ export interface CreateContainerPayload {
   start_script: string;
 }
 
+export interface UpdateContainerSpecsPayload {
+  cpu: number;
+  ram: number;
+  disk: number;
+}
+
 export interface Node {
   node_id: string;
   name: string;
@@ -237,6 +249,12 @@ export interface CreatePortMappingPayload {
   container_port: number;
   host_port?: number;
   protocol: string;
+}
+
+export interface UpdatePortMappingPayload {
+  container_port?: number;
+  host_port?: number;
+  protocol?: string;
 }
 
 // ── Container requests ────────────────────────────────────────────────────────
@@ -291,6 +309,14 @@ export async function updateContainerInfo(id: string, name: string): Promise<voi
   }
 }
 
+export async function updateContainerSpecs(id: string, payload: UpdateContainerSpecsPayload): Promise<void> {
+  try {
+    await api.put(`/vps/${id}/specs`, payload, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
 export async function runCommand(id: string, command: string): Promise<string> {
   try {
     const { data } = await api.post<{ output: string }>(`/vps/${id}/command`, { command }, { headers: authHeaders() });
@@ -326,6 +352,15 @@ export async function deletePortMapping(id: string, mappingId: string): Promise<
   }
 }
 
+export async function updatePortMapping(id: string, mappingId: string, payload: UpdatePortMappingPayload): Promise<PortMapping> {
+  try {
+    const { data } = await api.put<PortMapping>(`/vps/${id}/ports/${mappingId}`, payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
 // ── Node requests ─────────────────────────────────────────────────────────────
 export async function listPublicNodes(): Promise<Node[]> {
   try {
@@ -340,6 +375,86 @@ export async function listPublicNodes(): Promise<Node[]> {
 export async function changeBalance(amount: number): Promise<void> {
   try {
     await api.put("/user/balance", { amount }, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── Private networks ───────────────────────────────────────────────────────────
+export async function listNetworks(): Promise<Network[]> {
+  try {
+    const { data } = await api.get<Network[]>("/networks", { headers: authHeaders() });
+    return data ?? [];
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function getNetwork(id: string): Promise<Network> {
+  try {
+    const { data } = await api.get<Network>(`/networks/${id}`, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function createNetwork(payload: { name: string; description?: string; subnet?: string }): Promise<Network> {
+  try {
+    const { data } = await api.post<Network>("/networks", payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function updateNetwork(id: string, payload: { name: string; description?: string }): Promise<Network> {
+  try {
+    const { data } = await api.put<Network>(`/networks/${id}`, payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function deleteNetwork(id: string): Promise<void> {
+  try {
+    await api.delete(`/networks/${id}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function listNetworkContainers(id: string): Promise<NetworkAttachment[]> {
+  try {
+    const { data } = await api.get<NetworkAttachment[]>(`/networks/${id}/containers`, { headers: authHeaders() });
+    return data ?? [];
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function listContainerNetworks(id: string): Promise<Network[]> {
+  try {
+    const { data } = await api.get<Network[]>(`/vps/${id}/networks`, { headers: authHeaders() });
+    return data ?? [];
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function attachContainerToNetwork(id: string, payload: { container_id: string; ip_address?: string }): Promise<NetworkAttachment> {
+  try {
+    const { data } = await api.post<NetworkAttachment>(`/networks/${id}/containers`, payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function detachContainerFromNetwork(id: string, containerId: string): Promise<void> {
+  try {
+    await api.delete(`/networks/${id}/containers/${containerId}`, { headers: authHeaders() });
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -366,6 +481,31 @@ export interface CreateNodePayload {
   cpu_cores: number;
   ram: number;
   disk_space: number;
+}
+
+export interface Network {
+  network_id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  subnet: string;
+  gateway: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NetworkAttachment {
+  id: string;
+  network_id: string;
+  container_id: string;
+  ip_address: string;
+  created_at: string;
+}
+
+export interface HardwareRecommendation {
+  basic_minimum: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
+  optimal: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
+  luxury_maximum: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
 }
 
 // ── Admin requests ────────────────────────────────────────────────────────────
@@ -420,4 +560,45 @@ export async function adminDeleteNode(id: string): Promise<void> {
   } catch (err) {
     throw new Error(extractMessage(err));
   }
+}
+
+export async function adminFindUser(query: { email?: string; username?: string; phone?: string }): Promise<AdminUser | null> {
+  try {
+    const params = new URLSearchParams();
+    if (query.email) params.append("email", query.email);
+    if (query.username) params.append("username", query.username);
+    if (query.phone) params.append("phone", query.phone);
+    const { data } = await api.get<AdminUser | null>(`/admin/user?${params.toString()}`, { headers: authHeaders() });
+    return data ?? null;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── AI services ────────────────────────────────────────────────────────────────
+export async function getHardwareRecommendation(text: string): Promise<HardwareRecommendation> {
+  try {
+    const { data } = await api.post<HardwareRecommendation>("/ai/hardware-recommendation", { text }, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export function createTerminalSocket(containerId: string, refreshMs = 1000): WebSocket {
+  const token = getCookie("access_token") ?? "";
+  const url = buildWsUrl(`/vps/${containerId}/terminal?token=${encodeURIComponent(token)}&refresh_ms=${refreshMs}`);
+  return new WebSocket(url);
+}
+
+export function createMetricsSocket(containerId: string, refreshMs = 1000): WebSocket {
+  const token = getCookie("access_token") ?? "";
+  const url = buildWsUrl(`/vps/${containerId}/metrics?token=${encodeURIComponent(token)}&refresh_ms=${refreshMs}`);
+  return new WebSocket(url);
+}
+
+export function createAiChatSocket(): WebSocket {
+  const token = getCookie("access_token") ?? "";
+  const url = buildWsUrl(`/ai/chat?token=${encodeURIComponent(token)}`);
+  return new WebSocket(url);
 }

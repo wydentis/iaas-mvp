@@ -55,10 +55,10 @@ export default function TopUp() {
             {/* Header */}
             <div className="border-b border-gray-100 px-7 py-6">
               <div className="mb-1 flex items-center gap-3">
-                <span className="font-bold flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-rose-700 text-lg shadow-[0_0_16px_rgba(225,29,72,0.4)]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B42124] text-lg font-bold ">
                   ПС
                 </span>
-                <h1 className="text-2xl font-black text-red-900">
+                <h1 className="text-2xl font-black text-red-700">
                   Пополнение баланса
                 </h1>
               </div>
@@ -80,7 +80,7 @@ export default function TopUp() {
                     onClick={() => selectPreset(p)}
                     className={`rounded-xl border py-2.5 text-sm font-bold transition-all duration-150 ${
                       amount === String(p)
-                        ? "border-red-700 bg-red-900 text-white shadow-[0_0_12px_rgba(153,27,27,0.35)]"
+                        ? "border-red-700 bg-red-700 text-white shadow-[0_0_12px_rgba(153,27,27,0.35)]"
                         : "border-gray-200 bg-gray-50 text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-800"
                     }`}
                   >
@@ -98,7 +98,7 @@ export default function TopUp() {
                     <span className="absolute top-1/2 left-80 -translate-y-1/2 text-sm font-semibold text-gray-400">
                       BYN
                     </span>
-                    <input 
+                    <input
                       type="number"
                       min={1}
                       value={amount}
@@ -127,7 +127,7 @@ export default function TopUp() {
                 <button
                   type="submit"
                   disabled={loading || !amount}
-                  className="group relative w-full overflow-hidden rounded-xl bg-red-900 py-3 text-sm font-bold text-white transition-all hover:bg-red-800 disabled:opacity-50"
+                  className="group relative w-full overflow-hidden rounded-xl bg-red-700 py-3 text-sm font-bold text-white transition-all hover:bg-red-800 disabled:opacity-50"
                 >
                   <span className="absolute inset-0 translate-x-[-100%] skew-x-[-20deg] bg-white/10 transition-transform duration-500 group-hover:translate-x-[200%]" />
                   <span className="relative">
@@ -145,7 +145,7 @@ export default function TopUp() {
           {/* Back */}
           <button
             onClick={() => navigate(-1)}
-            className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-red-200/50 transition hover:text-red-200/80"
+            className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-[#B42124]/50 transition hover:text-[#B42124]/80"
           >
             <svg
               className="h-4 w-4"

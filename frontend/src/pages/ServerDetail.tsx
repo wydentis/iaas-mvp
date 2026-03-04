@@ -9,8 +9,15 @@ import {
   deletePortMapping,
   runCommand,
   updateContainerInfo,
+  listNetworks,
+  listNetworkContainers,
+  listContainerNetworks,
+  attachContainerToNetwork,
+  detachContainerFromNetwork,
+  updateContainerSpecs,
+  updatePortMapping,
 } from "../api/requests";
-import type { Container, ContainerStatus, PortMapping } from "../api/requests";
+import type { Container, ContainerStatus, PortMapping, Network } from "../api/requests";
 import type { MetricsPoint } from "../utils/useContainerMetrics";
 import { getCookie } from "../utils/cookies";
 import { useContainerMetrics } from "../utils/useContainerMetrics";
@@ -75,12 +82,13 @@ function formatDate(iso: string) {
   });
 }
 
-type Tab = "info" | "metrics" | "ports" | "terminal";
+type Tab = "info" | "metrics" | "ports" | "networks" | "terminal";
 
 const TABS: { key: Tab; label: string; icon: string }[] = [
   { key: "info", label: "Информация", icon: "ℹ️" },
   { key: "metrics", label: "Метрики", icon: "📈" },
   { key: "ports", label: "Порты", icon: "🔌" },
+  { key: "networks", label: "Сети", icon: "🕸️" },
   { key: "terminal", label: "Терминал", icon: "⌨️" },
 ];
 
@@ -119,12 +127,30 @@ export default function ServerDetail() {
   });
   const [addingPort, setAddingPort] = useState(false);
   const [portError, setPortError] = useState<string | null>(null);
+  const [editingPortId, setEditingPortId] = useState<string | null>(null);
+  const [editPortForm, setEditPortForm] = useState({
+    container_port: "",
+    host_port: "",
+    protocol: "tcp",
+  });
 
   // Terminal
   const [cmd, setCmd] = useState("");
   const [cmdOutput, setCmdOutput] = useState<string | null>(null);
   const [cmdRunning, setCmdRunning] = useState(false);
   const [cmdError, setCmdError] = useState<string | null>(null);
+
+  // Networks
+  const [containerNetworks, setContainerNetworks] = useState<(Network & { ip_address?: string })[]>([]);
+  const [allNetworks, setAllNetworks] = useState<Network[]>([]);
+  const [networksLoading, setNetworksLoading] = useState(false);
+  const [networksError, setNetworksError] = useState<string | null>(null);
+  const [networkForm, setNetworkForm] = useState({ network_id: "", ip_address: "" });
+  const [networkSaving, setNetworkSaving] = useState(false);
+
+  // Specs update
+  const [specForm, setSpecForm] = useState({ cpu: 0, ram: 0, disk: 0 });
+  const [specSaving, setSpecSaving] = useState(false);
 
   useEffect(() => {
     if (!getCookie("access_token")) {
@@ -138,6 +164,12 @@ export default function ServerDetail() {
     loadAll();
   }, [id, navigate]);
 
+  useEffect(() => {
+    if (activeTab === "networks") {
+      loadNetworksData();
+    }
+  }, [activeTab, id]);
+
   async function loadAll() {
     setLoading(true);
     setError(null);
@@ -149,10 +181,43 @@ export default function ServerDetail() {
       setContainer(c);
       setPorts(p);
       setNameInput(c.name);
+      setSpecForm({ cpu: c.cpu, ram: c.ram, disk: c.disk });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка загрузки");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadNetworksData() {
+    if (!id) return;
+    setNetworksLoading(true);
+    setNetworksError(null);
+    try {
+      const [available, attached] = await Promise.all([
+        listNetworks(),
+        listContainerNetworks(id!),
+      ]);
+      const enriched = await Promise.all(
+        (attached ?? []).map(async (net) => {
+          try {
+            const conts = await listNetworkContainers(net.network_id);
+            const entry = conts.find((c) => c.container_id === id);
+            return { ...net, ip_address: entry?.ip_address };
+          } catch {
+            return { ...net };
+          }
+        }),
+      );
+      setAllNetworks(available ?? []);
+      setContainerNetworks(enriched);
+      if (!networkForm.network_id && (available?.length ?? 0) > 0) {
+        setNetworkForm((f) => ({ ...f, network_id: available![0].network_id }));
+      }
+    } catch (e) {
+      setNetworksError(e instanceof Error ? e.message : "Ошибка загрузки сетей");
+    } finally {
+      setNetworksLoading(false);
     }
   }
 
@@ -215,6 +280,71 @@ export default function ServerDetail() {
       setPortError(e instanceof Error ? e.message : "Ошибка");
     } finally {
       setAddingPort(false);
+    }
+  }
+
+  async function handleUpdatePort(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingPortId) return;
+    setPortError(null);
+    try {
+      const updated = await updatePortMapping(id!, editingPortId, {
+        container_port: editPortForm.container_port ? Number(editPortForm.container_port) : undefined,
+        host_port: editPortForm.host_port ? Number(editPortForm.host_port) : undefined,
+        protocol: editPortForm.protocol,
+      });
+      setPorts((prev) => prev.map((p) => (p.id === editingPortId ? updated : p)));
+      setEditingPortId(null);
+      setEditPortForm({ container_port: "", host_port: "", protocol: "tcp" });
+    } catch (e) {
+      setPortError(e instanceof Error ? e.message : "Ошибка");
+    }
+  }
+
+  async function handleAttachNetwork(e: React.FormEvent) {
+    e.preventDefault();
+    if (!networkForm.network_id) return;
+    setNetworkSaving(true);
+    setNetworksError(null);
+    try {
+      await attachContainerToNetwork(networkForm.network_id, {
+        container_id: id!,
+        ip_address: networkForm.ip_address.trim() || undefined,
+      });
+      setNetworkForm((f) => ({ ...f, ip_address: "" }));
+      await loadNetworksData();
+    } catch (e) {
+      setNetworksError(e instanceof Error ? e.message : "Не удалось подключить к сети");
+    } finally {
+      setNetworkSaving(false);
+    }
+  }
+
+  async function handleDetachNetwork(netId: string) {
+    if (!confirm("Отключить контейнер от сети?")) return;
+    try {
+      await detachContainerFromNetwork(netId, id!);
+      setContainerNetworks((prev) => prev.filter((n) => n.network_id !== netId));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Не удалось отключить");
+    }
+  }
+
+  async function handleUpdateSpecs(e: React.FormEvent) {
+    e.preventDefault();
+    if (!container) return;
+    setSpecSaving(true);
+    try {
+      await updateContainerSpecs(container.container_id, {
+        cpu: Number(specForm.cpu),
+        ram: Number(specForm.ram),
+        disk: Number(specForm.disk),
+      });
+      setContainer((c) => (c ? { ...c, cpu: Number(specForm.cpu), ram: Number(specForm.ram), disk: Number(specForm.disk) } : c));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Не удалось обновить ресурсы");
+    } finally {
+      setSpecSaving(false);
     }
   }
 
@@ -305,7 +435,7 @@ export default function ServerDetail() {
         {/* ── Breadcrumb ── */}
         <button
           onClick={() => navigate("/dashboard")}
-          className="mb-6 flex items-center gap-2 text-sm text-red-200/50 transition hover:text-red-200/80"
+          className="mb-6 flex items-center gap-2 text-sm text-[#B42124]/50 transition hover:text-[#B42124]/80"
         >
           <svg
             className="h-4 w-4"
@@ -347,7 +477,7 @@ export default function ServerDetail() {
                     <button
                       onClick={handleSaveName}
                       disabled={savingName}
-                      className="rounded-lg bg-red-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                      className="rounded-lg bg-red-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
                     >
                       {savingName ? "…" : "Сохранить"}
                     </button>
@@ -487,7 +617,7 @@ export default function ServerDetail() {
                 onClick={() => setActiveTab(key)}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
                   activeTab === key
-                    ? "bg-white text-red-900 shadow-sm"
+                    ? "bg-white text-red-700 shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -538,6 +668,51 @@ export default function ServerDetail() {
                 value={formatDate(container.created_at)}
               />
             </div>
+            <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <h3 className="text-sm font-semibold text-gray-800">
+                Обновить ресурсы
+              </h3>
+              <form onSubmit={handleUpdateSpecs} className="mt-3 grid gap-3 sm:grid-cols-3">
+                {([
+                  { name: "cpu", label: "CPU (ядра)" },
+                  { name: "ram", label: "RAM (МБ)" },
+                  { name: "disk", label: "Диск (ГБ)" },
+                ] as const).map(({ name, label }) => (
+                  <div key={name}>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      {label}
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={specForm[name]}
+                      onChange={(e) =>
+                        setSpecForm((prev) => ({ ...prev, [name]: Number(e.target.value) }))
+                      }
+                      className={inputCls}
+                    />
+                  </div>
+                ))}
+                <div className="sm:col-span-3 flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={specSaving}
+                    className="rounded-xl bg-[#B42124] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                  >
+                    {specSaving ? "Сохранение…" : "Обновить"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSpecForm({ cpu: container.cpu, ram: container.ram, disk: container.disk })
+                    }
+                    className="rounded-xl bg-white px-4 py-2.5 text-sm text-gray-600 transition hover:bg-gray-100"
+                  >
+                    Сбросить
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -558,63 +733,80 @@ export default function ServerDetail() {
               Проброс портов
             </h2>
             {ports.length > 0 && (
-              <div className="mb-4 overflow-hidden rounded-xl border border-gray-100">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
-                        Хост порт
-                      </th>
-                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
-                        Контейнер порт
-                      </th>
-                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
-                        Протокол
-                      </th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ports.map((p) => (
-                      <tr
-                        key={p.id}
-                        className="border-b border-gray-50 transition last:border-0 hover:bg-gray-50"
-                      >
-                        <td className="px-4 py-3 font-mono text-gray-900">
-                          {p.host_port}
-                        </td>
-                        <td className="px-4 py-3 font-mono text-gray-600">
-                          {p.container_port}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 uppercase">
-                            {p.protocol}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => handleDeletePort(p.id)}
-                            className="text-gray-400 transition hover:text-red-600"
-                          >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m19 7-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </td>
+              <div className="mb-4 overflow-x-auto">
+                <div className="min-w-[520px] overflow-hidden rounded-xl border border-gray-100">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50">
+                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
+                          Хост порт
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
+                          Контейнер порт
+                        </th>
+                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500">
+                          Протокол
+                        </th>
+                        <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500" />
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {ports.map((p) => (
+                        <tr
+                          key={p.id}
+                          className="border-b border-gray-50 transition last:border-0 hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-3 font-mono text-gray-900 break-words">
+                            {p.host_port}
+                          </td>
+                          <td className="px-4 py-3 font-mono text-gray-600 break-words">
+                            {p.container_port}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 uppercase">
+                              {p.protocol}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-3">
+                              <button
+                                onClick={() => {
+                                  setEditingPortId(p.id);
+                                  setEditPortForm({
+                                    container_port: String(p.container_port),
+                                    host_port: p.host_port ? String(p.host_port) : "",
+                                    protocol: p.protocol,
+                                  });
+                                }}
+                                className="text-xs font-semibold text-gray-500 transition hover:text-red-700"
+                              >
+                                Изм.
+                              </button>
+                              <button
+                                onClick={() => handleDeletePort(p.id)}
+                                className="text-gray-400 transition hover:text-red-600"
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m19 7-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
             {!showAddPort ? (
@@ -696,7 +888,7 @@ export default function ServerDetail() {
                 <button
                   type="submit"
                   disabled={addingPort}
-                  className="rounded-xl bg-red-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                  className="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
                 >
                   {addingPort ? "…" : "Добавить"}
                 </button>
@@ -714,6 +906,186 @@ export default function ServerDetail() {
                   <p className="w-full text-xs text-red-600">{portError}</p>
                 )}
               </form>
+            )}
+            {editingPortId && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="mb-2 text-xs font-semibold text-amber-800">
+                  Редактирование маппинга
+                </p>
+                <form onSubmit={handleUpdatePort} className="flex flex-wrap items-end gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Порт контейнера
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={65535}
+                      value={editPortForm.container_port}
+                      onChange={(e) =>
+                        setEditPortForm((p) => ({ ...p, container_port: e.target.value }))
+                      }
+                      className={inputCls + " w-36"}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Порт хоста
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={65535}
+                      value={editPortForm.host_port}
+                      onChange={(e) =>
+                        setEditPortForm((p) => ({ ...p, host_port: e.target.value }))
+                      }
+                      className={inputCls + " w-36"}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-600">
+                      Протокол
+                    </label>
+                    <select
+                      value={editPortForm.protocol}
+                      onChange={(e) =>
+                        setEditPortForm((p) => ({ ...p, protocol: e.target.value }))
+                      }
+                      className={inputCls + " w-28 cursor-pointer"}
+                    >
+                      <option value="tcp">TCP</option>
+                      <option value="udp">UDP</option>
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700"
+                  >
+                    Сохранить
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingPortId(null)}
+                    className="rounded-xl bg-white px-4 py-2.5 text-sm text-gray-600 transition hover:bg-gray-100"
+                  >
+                    Отмена
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: Networks ── */}
+        {activeTab === "networks" && (
+          <div className="rounded-2xl bg-white px-8 py-6 shadow-2xl ring-1 ring-black/5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Приватные сети</h2>
+              <button
+                onClick={loadNetworksData}
+                className="text-xs font-semibold text-gray-500 hover:text-red-700"
+              >
+                Обновить
+              </button>
+            </div>
+            {networksError && (
+              <div className="mb-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                {networksError}
+              </div>
+            )}
+            {networksLoading ? (
+              <p className="text-sm text-gray-400">Загрузка сетей…</p>
+            ) : (
+              <>
+                {containerNetworks.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Контейнер не подключён ни к одной сети.
+                  </p>
+                ) : (
+                  <div className="mb-4 grid gap-3 sm:grid-cols-2">
+                    {containerNetworks.map((n) => (
+                      <div
+                        key={n.network_id}
+                        className="rounded-xl border border-gray-100 bg-gray-50 p-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-sm font-bold text-gray-900">
+                              {n.name}
+                            </div>
+                            <div className="text-xs text-gray-500">{n.subnet}</div>
+                            {n.ip_address && (
+                              <div className="mt-1 font-mono text-xs text-gray-700">
+                                IP: {n.ip_address}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleDetachNetwork(n.network_id)}
+                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                          >
+                            Отключить
+                          </button>
+                        </div>
+                        {n.description && (
+                          <p className="mt-2 text-xs text-gray-500">{n.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-4">
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    Подключить к сети
+                  </h3>
+                  <form onSubmit={handleAttachNetwork} className="mt-3 flex flex-wrap items-end gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">
+                        Сеть
+                      </label>
+                      <select
+                        required
+                        value={networkForm.network_id}
+                        onChange={(e) =>
+                          setNetworkForm((f) => ({ ...f, network_id: e.target.value }))
+                        }
+                        className={inputCls + " w-56 cursor-pointer"}
+                      >
+                        <option value="">Выберите…</option>
+                        {allNetworks
+                          .filter((n) => !containerNetworks.find((c) => c.network_id === n.network_id))
+                          .map((n) => (
+                            <option key={n.network_id} value={n.network_id}>
+                              {n.name} · {n.subnet}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-gray-600">
+                        IP (опционально)
+                      </label>
+                      <input
+                        value={networkForm.ip_address}
+                        onChange={(e) =>
+                          setNetworkForm((f) => ({ ...f, ip_address: e.target.value }))
+                        }
+                        placeholder="Авто"
+                        className={inputCls + " w-48"}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={networkSaving || !networkForm.network_id}
+                      className="rounded-xl bg-[#B42124] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                    >
+                      {networkSaving ? "Подключение…" : "Подключить"}
+                    </button>
+                  </form>
+                </div>
+              </>
             )}
           </div>
         )}
@@ -733,7 +1105,7 @@ export default function ServerDetail() {
               <button
                 type="submit"
                 disabled={cmdRunning || !cmd.trim()}
-                className="flex-shrink-0 rounded-xl bg-red-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                className="flex-shrink-0 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
               >
                 {cmdRunning ? (
                   <svg
