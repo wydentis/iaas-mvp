@@ -40,7 +40,7 @@ export const Login = () => {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-logo">
-          <img className="logo-img" src='../../assets/logo.svg'></img>
+          <img src="/logo.svg" className="logo-img" />
         </div>
 
         <h1>Вход в систему</h1>
