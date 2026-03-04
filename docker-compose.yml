@@ -30,6 +30,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-iaas_db}
       DB_HOST: db:5432
+      RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/}
     ports:
       - "8080:8080"
     volumes:
@@ -37,9 +38,74 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - iaas-network
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4.2.4-management-alpine
+    container_name: rabbit-server
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"   # RabbitMQ communication port
+      - "${RABBITMQ_UI_PORT:-15672}:15672" # Management UI (Username/Pass: guest/guest)
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - iaas-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis-server
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - iaas-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  recommendation_service:
+    build: ./recommendation-service
+    container_name: python_worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_MODEL_NAME=gemini-2.5-flash
+      - QUEUE_NAME=${QUEUE_NAME:-hardware_requests}
+    networks:
+      - iaas-network
+    restart: always
+
+  ai-consult-service:
+    build: ./ai-consult-service
+    container_name: ai_consult_worker
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/}
+      - AI_MODEL_NAME=gemini-2.5-flash
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CONSULTER_RESPONSE_QUEUE=${CONSULTER_RESPONSE_QUEUE:-chat_requests}
+    networks:
+      - iaas-network
+    restart: always
 
 networks:
   iaas-network:

@@ -9,9 +9,10 @@ import (
 )
 
 type ServerConfig struct {
-	Port      int            `json:"port"`
-	JWTSecret string         `json:"jwt_secret"`
-	DBConfig  DatabaseConfig `json:"db_config"`
+	Port        int            `json:"port"`
+	JWTSecret   string         `json:"jwt_secret"`
+	DBConfig    DatabaseConfig `json:"db_config"`
+	RabbitMQURL string         `json:"rabbitmq_url"`
 }
 
 type DatabaseConfig struct {

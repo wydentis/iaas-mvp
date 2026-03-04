@@ -53,7 +53,15 @@ func main() {
 	portMappingService := service.NewPortMappingService(portMappingRepo, containerRepo, nodeManager)
 	portMappingHandler := handler.NewPortMappingHandler(portMappingService)
 
-	wsHandler := handler.NewWebSocketHandler(containerService)
+	rabbitmqService, err := service.NewRabbitMQService(cfg.RabbitMQURL)
+	if err != nil {
+		slog.Error("failed to connect to RabbitMQ", "err", err)
+		os.Exit(1)
+	}
+	defer rabbitmqService.Close()
+	aiHandler := handler.NewAIHandler(rabbitmqService)
+
+	wsHandler := handler.NewWebSocketHandler(containerService, rabbitmqService)
 	metricsHandler := handler.NewMetricsHandler(nodeManager, containerRepo)
 
 	mux := http.NewServeMux()
@@ -110,6 +118,10 @@ func main() {
 	mux.HandleFunc("GET /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.GetPortMappings, cfg.JWTSecret))
 	mux.HandleFunc("PUT /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.UpdatePortMapping, cfg.JWTSecret))
 	mux.HandleFunc("DELETE /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.DeletePortMapping, cfg.JWTSecret))
+
+	// AI endpoints
+	mux.HandleFunc("POST /ai/hardware-recommendation", middleware.AuthMiddleware(aiHandler.GetHardwareRecommendation, cfg.JWTSecret))
+	mux.HandleFunc("GET /ai/chat", middleware.AuthMiddleware(wsHandler.AIChat, cfg.JWTSecret))
 
 	allowedOrigins := []string{
 		"https://serverdam.wydentis.xyz",

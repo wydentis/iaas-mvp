@@ -6,5 +6,6 @@
     "password": "${DB_PASSWORD}",
     "db_name": "${DB_NAME}",
     "db_host": "${DB_HOST}"
-  }
+  },
+  "rabbitmq_url": "${RABBITMQ_URL}"
 }
