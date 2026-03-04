@@ -12,107 +12,58 @@ import { getCookie } from "../utils/cookies";
 import AnimatedBackground from "../components/AnimatedBackground";
 import Header from "../components/Header";
 
-// ── Pricing (₽/month estimates) ───────────────────────────────────────────────
-const CPU_PRICE = 150;
-const RAM_PRICE = 80;
-const DISK_PRICE = 5;
+// ── Pricing (BYN/month estimates for Belarus market) ──────────────────────────
+const CPU_PRICE = 14;
+const RAM_PRICE = 9;
+const DISK_PRICE = 0.6;
 
 // ── OS images ─────────────────────────────────────────────────────────────────
 const IMAGES = [
-  {
-    id: "ubuntu/22.04",
-    label: "Ubuntu 22.04",
-    icon: "🟠",
-    desc: "LTS, популярный",
-  },
-  {
-    id: "ubuntu/20.04",
-    label: "Ubuntu 20.04",
-    icon: "🟠",
-    desc: "LTS, стабильный",
-  },
-  { id: "debian/12", label: "Debian 12", icon: "🔴", desc: "Bookworm" },
-  { id: "debian/11", label: "Debian 11", icon: "🔴", desc: "Bullseye" },
-  {
-    id: "alpine/3.19",
-    label: "Alpine 3.19",
-    icon: "🔵",
-    desc: "Минималистичный",
-  },
-  { id: "centos/7", label: "CentOS 7", icon: "💜", desc: "Корпоративный" },
-  { id: "fedora/39", label: "Fedora 39", icon: "🔵", desc: "Современный" },
-  { id: "arch/latest", label: "Arch Linux", icon: "🔷", desc: "Передовой" },
+  { id: "ubuntu/22.04", label: "Ubuntu 22.04", logo: "/os-logos/ubuntu.png", desc: "LTS, популярный" },
+  { id: "ubuntu/20.04", label: "Ubuntu 20.04", logo: "/os-logos/ubuntu.png", desc: "LTS, стабильный" },
+  { id: "debian/12", label: "Debian 12", logo: "/os-logos/debian.png", desc: "Bookworm" },
+  { id: "debian/11", label: "Debian 11", logo: "/os-logos/debian.png", desc: "Bullseye" },
+  { id: "alpine/3.19", label: "Alpine 3.19", logo: "/os-logos/alpine.png", desc: "Минималистичный" },
+  { id: "centos/7", label: "CentOS 7", logo: "/os-logos/centos.png", desc: "Корпоративный" },
+  { id: "fedora/39", label: "Fedora 39", logo: "/os-logos/fedora.png", desc: "Современный" },
+  { id: "arch/latest", label: "Arch Linux", logo: "/os-logos/arch.png", desc: "i use arch btw" },
 ];
 
-const CPU_OPTS = [1, 2, 4, 8, 16];
-const RAM_OPTS = [512, 1024, 2048, 4096, 8192, 16384];
-const DISK_OPTS = [10, 20, 40, 80, 160, 320];
-
 const PLANS = [
-  {
-    id: "starter",
-    label: "Старт",
-    cpu: 1,
-    ram: 512,
-    disk: 10,
-    badge: null,
-    badgeColor: "",
-  },
-  {
-    id: "basic",
-    label: "Базовый",
-    cpu: 1,
-    ram: 1024,
-    disk: 20,
-    badge: null,
-    badgeColor: "",
-  },
-  {
-    id: "standard",
-    label: "Стандарт",
-    cpu: 2,
-    ram: 2048,
-    disk: 40,
-    badge: "Популярный",
-    badgeColor: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "pro",
-    label: "Профи",
-    cpu: 4,
-    ram: 4096,
-    disk: 80,
-    badge: null,
-    badgeColor: "",
-  },
-  {
-    id: "business",
-    label: "Бизнес",
-    cpu: 8,
-    ram: 8192,
-    disk: 160,
-    badge: null,
-    badgeColor: "",
-  },
-  {
-    id: "custom",
-    label: "Своя конфиг",
-    cpu: 0,
-    ram: 0,
-    disk: 0,
-    badge: "Гибко",
-    badgeColor: "bg-amber-100 text-amber-700",
-  },
+  { id: "starter", label: "Старт", cpu: 1, ram: 512, disk: 10, badge: null, badgeColor: "" },
+  { id: "basic", label: "Базовый", cpu: 1, ram: 1024, disk: 20, badge: null, badgeColor: "" },
+  { id: "standard", label: "Стандарт", cpu: 2, ram: 2048, disk: 40, badge: "Популярный", badgeColor: "bg-emerald-100 text-emerald-700" },
+  { id: "pro", label: "Профи", cpu: 4, ram: 4096, disk: 80, badge: null, badgeColor: "" },
+  { id: "business", label: "Бизнес", cpu: 8, ram: 8192, disk: 160, badge: null, badgeColor: "" },
+  { id: "custom", label: "Своя конфиг", cpu: 0, ram: 0, disk: 0, badge: "Гибко", badgeColor: "bg-amber-100 text-amber-700" },
 ];
 
 function calcPrice(cpu: number, ram: number, disk: number) {
-  return (
-    cpu * CPU_PRICE + Math.round((ram / 1024) * RAM_PRICE) + disk * DISK_PRICE
-  );
+  return Number((cpu * CPU_PRICE + Math.round((ram / 1024) * RAM_PRICE) + disk * DISK_PRICE).toFixed(1));
+}
+
+function formatBYN(value: number) {
+  return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(1);
 }
 
 function formatRAM(mb: number) {
   return mb >= 1024 ? `${mb / 1024} ГБ` : `${mb} МБ`;
+}
+
+function getSshScriptPlaceholder(imageId: string) {
+  if (imageId.startsWith("alpine/")) {
+    return "#!/bin/sh\napk add --no-cache openssh\nrc-update add sshd default\nservice sshd start";
+  }
+  if (imageId.startsWith("centos/")) {
+    return "#!/bin/bash\nyum install -y openssh-server\nsystemctl enable --now sshd";
+  }
+  if (imageId.startsWith("fedora/")) {
+    return "#!/bin/bash\ndnf install -y openssh-server\nsystemctl enable --now sshd";
+  }
+  if (imageId.startsWith("arch/")) {
+    return "#!/bin/bash\npacman -Sy --noconfirm openssh\nsystemctl enable --now sshd";
+  }
+  return "#!/bin/bash\napt update && apt install -y openssh-server\nsystemctl enable --now ssh";
 }
 
 // ── SelectCard ────────────────────────────────────────────────────────────────
@@ -148,15 +99,7 @@ function SelectCard({
 }
 
 // ── Step header ───────────────────────────────────────────────────────────────
-function StepHeader({
-  step,
-  title,
-  optional,
-}: {
-  step: string;
-  title: string;
-  optional?: boolean;
-}) {
+function StepHeader({ step, title, optional }: { step: string; title: string; optional?: boolean }) {
   return (
     <div className="mb-4 flex items-center gap-3">
       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-red-700 text-xs font-black text-white">
@@ -172,6 +115,59 @@ function StepHeader({
   );
 }
 
+// ── Slider Configuration Component ────────────────────────────────────────────
+function ConfigSlider({
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  icon,
+  priceLabel,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string | ((val: number) => string);
+  icon: string;
+  priceLabel: string;
+  onChange: (val: number) => void;
+}) {
+  const displayUnit = typeof unit === "function" ? unit(value) : `${value} ${unit}`;
+  
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all focus-within:border-red-300 focus-within:ring-2 focus-within:ring-red-50">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">{icon}</span>
+          <span className="text-sm font-bold text-gray-900">{label}</span>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-black text-red-700">{displayUnit}</div>
+          <div className="text-[11px] text-gray-400">{priceLabel}</div>
+        </div>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-red-700 outline-none"
+      />
+      <div className="mt-2 flex justify-between text-[10px] font-medium text-gray-400">
+        <span>{typeof unit === "function" ? unit(min) : `${min} ${unit}`}</span>
+        <span>{typeof unit === "function" ? unit(max) : `${max} ${unit}`}</span>
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function NewServer() {
   const navigate = useNavigate();
@@ -183,6 +179,8 @@ export default function NewServer() {
   const [planId, setPlanId] = useState("standard");
   const [image, setImage] = useState("ubuntu/22.04");
   const [nodeId, setNodeId] = useState("");
+  
+  // Custom config states
   const [cpu, setCpu] = useState(2);
   const [ram, setRam] = useState(2048);
   const [disk, setDisk] = useState(40);
@@ -223,17 +221,11 @@ export default function NewServer() {
     }
   }
 
-  function pickCpu(c: number) {
-    setCpu(c);
-    setPlanId("custom");
-  }
-  function pickRam(r: number) {
-    setRam(r);
-    setPlanId("custom");
-  }
-  function pickDisk(d: number) {
-    setDisk(d);
-    setPlanId("custom");
+  function handleCustomChange(setter: (val: number) => void) {
+    return (val: number) => {
+      setter(val);
+      setPlanId("custom");
+    };
   }
 
   function toggleNetwork(id: string) {
@@ -243,6 +235,10 @@ export default function NewServer() {
   }
 
   const price = calcPrice(cpu, ram, disk);
+  const cpuCost = Number((cpu * CPU_PRICE).toFixed(1));
+  const ramCost = Math.round((ram / 1024) * RAM_PRICE);
+  const diskCost = Number((disk * DISK_PRICE).toFixed(1));
+  const scriptPlaceholder = getSshScriptPlaceholder(image);
 
   async function handleAskAI(e: React.FormEvent) {
     e.preventDefault();
@@ -268,6 +264,9 @@ export default function NewServer() {
     setRam(config.ram_gb * 1024);
     setDisk(config.disk_size_gb);
     setPlanId("custom");
+    
+    // Optional: Smooth scroll to the config sliders
+    document.getElementById("config-sliders")?.scrollIntoView({ behavior: 'smooth' });
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -301,13 +300,8 @@ export default function NewServer() {
           }
         }
       }
-      const existing = JSON.parse(
-        localStorage.getItem("container_ids") ?? "[]",
-      ) as string[];
-      localStorage.setItem(
-        "container_ids",
-        JSON.stringify([...existing, c.container_id]),
-      );
+      const existing = JSON.parse(localStorage.getItem("container_ids") ?? "[]") as string[];
+      localStorage.setItem("container_ids", JSON.stringify([...existing, c.container_id]));
       navigate(`/servers/${c.container_id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка создания");
@@ -315,111 +309,88 @@ export default function NewServer() {
     }
   }
 
-  const inputCls =
-    "w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-red-700 focus:bg-white focus:ring-2 focus:ring-red-700/15 placeholder:text-gray-400";
+  const inputCls = "w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-red-700 focus:bg-white focus:ring-2 focus:ring-red-700/15 placeholder:text-gray-400";
 
   return (
     <div className="relative min-h-screen">
       <AnimatedBackground />
 
-      {/* ── Top bar (outside white panel, over animation) ── */}
       <div className="relative z-10">
         <Header />
       </div>
 
-      {/* ── White panel wrapper ── */}
       <div className="relative z-10 mx-auto max-w-[1400px] px-4 pt-6 pb-16">
-        {/* Panel top bar — back button only */}
         <div className="mb-3">
           <button
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/30"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m15 18-6-6 6-6"
-              />
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m15 18-6-6 6-6" />
             </svg>
             Назад
           </button>
         </div>
 
-        {/* ── Main white card ── */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-          {/* Card title bar */}
           <div className="flex items-center gap-3 border-b border-gray-100 px-8 py-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-700">
-              <svg
-                className="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4.5v15m7.5-7.5h-15"
-                />
+              <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-black text-gray-900">
-                Создать сервер
-              </h1>
-              <p className="text-xs text-gray-400">
-                Выберите конфигурацию и запустите контейнер
-              </p>
+              <h1 className="text-lg font-black text-gray-900">Создать сервер</h1>
+              <p className="text-xs text-gray-400">Выберите конфигурацию и запустите контейнер</p>
             </div>
           </div>
 
           {/* ── AI recommendation row ── */}
-          <div className="border-b border-gray-100 px-6 py-5">
-            <div className="grid items-start gap-4 lg:grid-cols-[1.2fr_1fr]">
-              <form onSubmit={handleAskAI} className="space-y-2">
+          <div className="border-b border-gray-100 bg-red-50/20 px-6 py-6">
+            <div className="grid items-start gap-6 lg:grid-cols-[1.2fr_1fr]">
+              <form onSubmit={handleAskAI} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-red-50 px-2 py-1 text-[11px] font-semibold text-[#B42124]">
-                    🤖 AI
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 text-[12px] shadow-sm">
+                    🤖
                   </span>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Опишите задачу — получим конфигурацию
+                  <p className="text-sm font-bold text-gray-800">
+                    Подобрать конфигурацию с помощью AI
                   </p>
                 </div>
                 <textarea
                   value={requirements}
                   onChange={(e) => setRequirements(e.target.value)}
                   placeholder="Например: веб-сервер nginx + Postgres для 10k RPS"
-                  className="h-20 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-red-700 focus:bg-white focus:ring-2 focus:ring-red-700/15"
+                  className="h-24 w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-red-700 focus:ring-2 focus:ring-red-700/15"
                 />
-                {recError && (
-                  <p className="text-xs text-red-600">{recError}</p>
-                )}
+                {recError && <p className="text-xs font-medium text-red-600">{recError}</p>}
                 <button
                   type="submit"
                   disabled={recLoading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#B42124] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-800 disabled:opacity-50"
+                  className="inline-flex w-fit items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-black disabled:opacity-50"
                 >
-                  {recLoading ? "Запрос…" : "Получить рекомендацию"}
+                  {recLoading ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                      </svg>
+                      Анализируем...
+                    </span>
+                  ) : "Получить рекомендацию"}
                 </button>
               </form>
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-                  Предложения
+
+              <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-gray-500">
+                  Предложения AI
                 </p>
                 {rec ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {([
-                      { key: "basic_minimum", label: "Минимум", tone: "bg-gray-100 text-gray-700" },
-                      { key: "optimal", label: "Оптимально", tone: "bg-emerald-100 text-emerald-700" },
-                      { key: "luxury_maximum", label: "Максимум", tone: "bg-purple-100 text-purple-700" },
+                      { key: "basic_minimum", label: "Минимум", tone: "bg-red-50 text-red-700 border-red-200" },
+                      { key: "optimal", label: "Оптимально", tone: "bg-red-100 text-red-800 border-red-300 ring-1 ring-red-700/20" },
+                      { key: "luxury_maximum", label: "С запасом", tone: "bg-red-200/60 text-red-900 border-red-400" },
                     ] as const).map(({ key, label, tone }) => {
                       const cfg = rec[key];
                       return (
@@ -427,20 +398,20 @@ export default function NewServer() {
                           key={key}
                           type="button"
                           onClick={() => applyRec(cfg)}
-                          className="w-full rounded-lg border border-gray-200 bg-white p-3 text-left transition hover:border-red-200 hover:shadow-sm"
+                          className={`group relative w-full overflow-hidden rounded-xl border p-3 text-left transition hover:shadow-md ${tone}`}
                         >
                           <div className="mb-1 flex items-center justify-between">
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${tone}`}>
+                            <span className="text-[11px] font-black uppercase tracking-wider">
                               {label}
                             </span>
-                            <span className="text-[11px] font-semibold text-[#B42124]">
-                              Выбрать
+                            <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-gray-900 shadow-sm opacity-0 transition group-hover:opacity-100">
+                              Применить
                             </span>
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="mb-1.5 text-sm font-bold text-gray-900">
                             {cfg.cpu_cores} CPU · {cfg.ram_gb} ГБ RAM · {cfg.disk_size_gb} ГБ SSD
                           </div>
-                          <p className="mt-1 text-[11px] text-gray-400 line-clamp-2">
+                          <p className="text-[11px] font-medium leading-relaxed opacity-80">
                             {cfg.reasoning}
                           </p>
                         </button>
@@ -448,17 +419,20 @@ export default function NewServer() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">
-                    Введите требования, и мы предложим 3 профиля ресурсов.
-                  </p>
+                  <div className="flex h-32 flex-col items-center justify-center text-center">
+                    <span className="mb-2 text-2xl opacity-50">✨</span>
+                    <p className="text-sm text-gray-500">
+                      Введите требования, и AI подберет<br/> 3 оптимальных профиля ресурсов.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleCreate} className="grid gap-6 px-8 py-8 lg:grid-cols-[1.2fr_0.9fr]">
+          <form onSubmit={handleCreate} className="grid gap-6 px-8 py-8">
             <div className="min-h-[600px] space-y-10">
-              {/* 1. Название */}
+              
               <section>
                 <StepHeader step="1" title="Название сервера" />
                 <input
@@ -468,52 +442,31 @@ export default function NewServer() {
                   placeholder="my-web-server"
                   className={inputCls + " max-w-sm"}
                 />
-                <p className="mt-1.5 text-xs text-gray-400">
-                  Латинские буквы, цифры и дефисы
-                </p>
               </section>
 
-              {/* 2. Тарифный план */}
               <section>
-                <StepHeader step="2" title="Тарифный план" />
+                <StepHeader step="2" title="Готовые тарифы" />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
                   {PLANS.map((p) => {
-                    const pp =
-                      p.id !== "custom"
-                        ? calcPrice(p.cpu, p.ram, p.disk)
-                        : null;
+                    const pp = calcPrice(p.cpu, p.ram, p.disk);
                     return (
-                      <SelectCard
-                        key={p.id}
-                        selected={planId === p.id}
-                        onClick={() => selectPlan(p.id)}
-                      >
+                      <SelectCard key={p.id} selected={planId === p.id} onClick={() => selectPlan(p.id)}>
                         {p.badge && (
-                          <span
-                            className={`mb-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${p.badgeColor}`}
-                          >
+                          <span className={`mb-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${p.badgeColor}`}>
                             {p.badge}
                           </span>
                         )}
-                        <div className="text-sm font-bold text-gray-900">
-                          {p.label}
-                        </div>
+                        <div className="text-sm font-bold text-gray-900">{p.label}</div>
                         {p.id !== "custom" ? (
                           <>
                             <div className="mt-1 text-[11px] text-gray-400">
                               {p.cpu} CPU · {formatRAM(p.ram)}
                             </div>
-                            <div className="text-[11px] text-gray-400">
-                              {p.disk} ГБ SSD
-                            </div>
-                            <div className="mt-1.5 text-sm font-bold text-red-700">
-                              {pp} ₽/мес
-                            </div>
+                            <div className="text-[11px] text-gray-400">{p.disk} ГБ SSD</div>
+                            <div className="mt-1.5 text-sm font-bold text-red-700">{formatBYN(pp)} BYN/мес</div>
                           </>
                         ) : (
-                          <div className="mt-1 text-xs text-gray-400">
-                            Настрой сам
-                          </div>
+                          <div className="mt-1 text-xs text-gray-400">Свой выбор</div>
                         )}
                       </SelectCard>
                     );
@@ -521,29 +474,21 @@ export default function NewServer() {
                 </div>
               </section>
 
-              {/* 3. ОС */}
               <section>
                 <StepHeader step="3" title="Операционная система" />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {IMAGES.map((img) => (
-                    <SelectCard
-                      key={img.id}
-                      selected={image === img.id}
-                      onClick={() => setImage(img.id)}
-                    >
-                      <div className="mb-2 text-2xl">{img.icon}</div>
-                      <div className="text-sm font-bold text-gray-900">
-                        {img.label}
+                    <SelectCard key={img.id} selected={image === img.id} onClick={() => setImage(img.id)}>
+                      <div className="mb-2">
+                        <img src={img.logo} alt={img.label} className="h-8 w-8 object-contain" loading="lazy" />
                       </div>
-                      <div className="mt-0.5 text-xs text-gray-400">
-                        {img.desc}
-                      </div>
+                      <div className="text-sm font-bold text-gray-900">{img.label}</div>
+                      <div className="mt-0.5 text-xs text-gray-400">{img.desc}</div>
                     </SelectCard>
                   ))}
                 </div>
               </section>
 
-              {/* 4. Регион */}
               <section>
                 <StepHeader step="4" title="Регион / Узел" />
                 {nodes.length === 0 ? (
@@ -553,36 +498,14 @@ export default function NewServer() {
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {nodes.map((n) => (
-                      <SelectCard
-                        key={n.node_id}
-                        selected={nodeId === n.node_id}
-                        onClick={() => setNodeId(n.node_id)}
-                      >
+                      <SelectCard key={n.node_id} selected={nodeId === n.node_id} onClick={() => setNodeId(n.node_id)}>
                         <div className="flex items-start justify-between">
                           <div>
-                            <div className="font-bold text-gray-900">
-                              {n.name}
-                            </div>
-                            <div className="mt-0.5 font-mono text-xs text-gray-400">
-                              {n.ip_address}
-                            </div>
+                            <div className="font-bold text-gray-900">{n.name}</div>
+                            <div className="mt-0.5 font-mono text-xs text-gray-400">{n.ip_address}</div>
                           </div>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              n.status === "online"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-gray-100 text-gray-500"
-                            }`}
-                          >
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${n.status === "online" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
                             {n.status}
-                          </span>
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <span className="rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                            ⚙️ {n.cpu_cores} CPU
-                          </span>
-                          <span className="rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                            🧠 {formatRAM(n.ram)}
                           </span>
                         </div>
                       </SelectCard>
@@ -591,13 +514,10 @@ export default function NewServer() {
                 )}
               </section>
 
-              {/* 5. Приватные сети */}
               <section>
                 <StepHeader step="5" title="Приватные сети" optional />
                 {networks.length === 0 ? (
-                  <p className="text-sm text-gray-400">
-                    У вас пока нет сетей. Создайте их в разделе «Сети».
-                  </p>
+                  <p className="text-sm text-gray-400">У вас пока нет сетей.</p>
                 ) : (
                   <div className="flex flex-wrap gap-3">
                     {networks.map((n) => (
@@ -605,11 +525,7 @@ export default function NewServer() {
                         key={n.network_id}
                         type="button"
                         onClick={() => toggleNetwork(n.network_id)}
-                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                          selectedNetworks.includes(n.network_id)
-                            ? "border-red-200 bg-red-50 shadow-sm"
-                            : "border-gray-200 bg-gray-50 hover:border-red-200 hover:bg-red-50/40"
-                        }`}
+                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${selectedNetworks.includes(n.network_id) ? "border-red-200 bg-red-50 shadow-sm" : "border-gray-200 bg-gray-50 hover:border-red-200 hover:bg-red-50/40"}`}
                       >
                         <div className="font-semibold text-gray-900">{n.name}</div>
                         <div className="text-xs text-gray-500">{n.subnet}</div>
@@ -619,136 +535,73 @@ export default function NewServer() {
                 )}
               </section>
 
-              {/* 6. CPU */}
-              <section>
-                <StepHeader step="6" title="Процессоры" />
-                <div className="flex flex-wrap gap-3">
-                  {CPU_OPTS.map((c) => (
-                    <SelectCard
-                      key={c}
-                      selected={cpu === c}
-                      onClick={() => pickCpu(c)}
-                      className="w-24 text-center"
-                    >
-                      <div className="text-xl">⚙️</div>
-                      <div className="mt-1 text-sm font-bold text-gray-900">
-                        {c} {c === 1 ? "ядро" : c < 5 ? "ядра" : "ядер"}
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-gray-400">
-                        +{c * CPU_PRICE} ₽
-                      </div>
-                    </SelectCard>
-                  ))}
+              {/* ── Sliders Section ── */}
+              <section id="config-sliders">
+                <StepHeader step="6" title="Конфигурация ресурсов" />
+                <div className="grid gap-5 rounded-2xl bg-gray-50/50 p-6 ring-1 ring-gray-100">
+                  <ConfigSlider
+                    label="Процессор"
+                    icon="⚙️"
+                    value={cpu}
+                    min={1}
+                    max={16}
+                    step={1}
+                    unit={(val) => `${val} ${val === 1 ? "ядро" : val < 5 ? "ядра" : "ядер"}`}
+                    priceLabel={`+${formatBYN(cpuCost)} BYN`}
+                    onChange={handleCustomChange(setCpu)}
+                  />
+                  
+                  <ConfigSlider
+                    label="Оперативная память"
+                    icon="🧠"
+                    value={ram}
+                    min={512}
+                    max={16384}
+                    step={512}
+                    unit={(val) => formatRAM(val)}
+                    priceLabel={`+${formatBYN(ramCost)} BYN`}
+                    onChange={handleCustomChange(setRam)}
+                  />
+                  
+                  <ConfigSlider
+                    label="Диск SSD"
+                    icon="💾"
+                    value={disk}
+                    min={10}
+                    max={320}
+                    step={10}
+                    unit="ГБ"
+                    priceLabel={`+${formatBYN(diskCost)} BYN`}
+                    onChange={handleCustomChange(setDisk)}
+                  />
                 </div>
               </section>
 
-              {/* 7. RAM */}
               <section>
-                <StepHeader step="7" title="Оперативная память" />
-                <div className="flex flex-wrap gap-3">
-                  {RAM_OPTS.map((r) => (
-                    <SelectCard
-                      key={r}
-                      selected={ram === r}
-                      onClick={() => pickRam(r)}
-                      className="w-28 text-center"
-                    >
-                      <div className="text-xl">🧠</div>
-                      <div className="mt-1 text-sm font-bold text-gray-900">
-                        {formatRAM(r)}
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-gray-400">
-                        +{Math.round((r / 1024) * RAM_PRICE)} ₽
-                      </div>
-                    </SelectCard>
-                  ))}
-                </div>
-              </section>
-
-              {/* 8. Disk */}
-              <section>
-                <StepHeader step="8" title="Диск SSD" />
-                <div className="flex flex-wrap gap-3">
-                  {DISK_OPTS.map((d) => (
-                    <SelectCard
-                      key={d}
-                      selected={disk === d}
-                      onClick={() => pickDisk(d)}
-                      className="w-28 text-center"
-                    >
-                      <div className="text-xl">💾</div>
-                      <div className="mt-1 text-sm font-bold text-gray-900">
-                        {d} ГБ
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-gray-400">
-                        +{d * DISK_PRICE} ₽
-                      </div>
-                    </SelectCard>
-                  ))}
-                </div>
-              </section>
-
-              {/* 9. Скрипт */}
-              <section>
-                <StepHeader step="9" title="Скрипт запуска" optional />
+                <StepHeader step="7" title="Скрипт запуска" optional />
                 <textarea
                   rows={5}
                   value={script}
                   onChange={(e) => setScript(e.target.value)}
-                  placeholder={
-                    "#!/bin/bash\napt update && apt install -y nginx"
-                  }
+                  placeholder={scriptPlaceholder}
                   className={inputCls + " resize-none font-mono text-xs"}
                 />
-                <p className="mt-1.5 text-xs text-gray-400">
-                  Выполняется один раз при первом запуске контейнера
-                </p>
               </section>
             </div>
 
-            {/* Summary column */}
-            <div className="order-first lg:order-none">
+            {/* Summary block */}
+            <div>
               <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-inner">
                 <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">
                   Итог
                 </h2>
 
                 <div className="space-y-2.5">
-                  <SummaryRow
-                    icon="🖥️"
-                    label="Название"
-                    value={
-                      name || <span className="text-gray-300 italic">не задано</span>
-                    }
-                  />
-                  <SummaryRow
-                    icon="🐧"
-                    label="ОС"
-                    value={IMAGES.find((i) => i.id === image)?.label ?? image}
-                  />
-                  <SummaryRow
-                    icon="📍"
-                    label="Регион"
-                    value={
-                      nodes.find((n) => n.node_id === nodeId)?.name ?? (
-                        <span className="text-gray-300 italic">не выбран</span>
-                      )
-                    }
-                  />
-                  <SummaryRow
-                    icon="🕸️"
-                    label="Сети"
-                    value={
-                      selectedNetworks.length > 0
-                        ? `${selectedNetworks.length} шт.`
-                        : <span className="text-gray-300 italic">не выбраны</span>
-                    }
-                  />
-                  <SummaryRow
-                    icon="⚙️"
-                    label="CPU"
-                    value={`${cpu} ${cpu === 1 ? "ядро" : cpu < 5 ? "ядра" : "ядер"}`}
-                  />
+                  <SummaryRow icon="🖥️" label="Название" value={name || <span className="text-gray-300 italic">не задано</span>} />
+                  <SummaryRow icon="🐧" label="ОС" value={IMAGES.find((i) => i.id === image)?.label ?? image} />
+                  <SummaryRow icon="📍" label="Регион" value={nodes.find((n) => n.node_id === nodeId)?.name ?? <span className="text-gray-300 italic">не выбран</span>} />
+                  <SummaryRow icon="🕸️" label="Сети" value={selectedNetworks.length > 0 ? `${selectedNetworks.length} шт.` : <span className="text-gray-300 italic">не выбраны</span>} />
+                  <SummaryRow icon="⚙️" label="CPU" value={`${cpu} ${cpu === 1 ? "ядро" : cpu < 5 ? "ядра" : "ядер"}`} />
                   <SummaryRow icon="🧠" label="RAM" value={formatRAM(ram)} />
                   <SummaryRow icon="💾" label="Диск" value={`${disk} ГБ SSD`} />
                 </div>
@@ -757,30 +610,21 @@ export default function NewServer() {
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between text-gray-400">
-                    <span>
-                      CPU ({cpu} × {CPU_PRICE} BYN)
-                    </span>
-                    <span>{cpu * CPU_PRICE} BYN</span>
+                    <span>CPU ({cpu} × {CPU_PRICE} BYN)</span>
+                    <span>{formatBYN(cpuCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>
-                      RAM ({formatRAM(ram)} × {RAM_PRICE} BYN/ГБ)
-                    </span>
-                    <span>{Math.round((ram / 1024) * RAM_PRICE)} BYN</span>
+                    <span>RAM ({formatRAM(ram)} × {RAM_PRICE} BYN/ГБ)</span>
+                    <span>{formatBYN(ramCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>
-                      SSD ({disk} × {DISK_PRICE} BYN)
-                    </span>
-                    <span>{disk * DISK_PRICE} BYN</span>
+                    <span>SSD ({disk} × {DISK_PRICE} BYN)</span>
+                    <span>{formatBYN(diskCost)} BYN</span>
                   </div>
                   <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-gray-900">
                     <span>Итого / месяц</span>
-                    <span className="text-red-700">{price} BYN</span>
+                    <span className="text-red-700">{formatBYN(price)} BYN</span>
                   </div>
-                  <p className="text-[10px] text-gray-300">
-                    Примерная стоимость. Списывается посуточно.
-                  </p>
                 </div>
 
                 {error && (
@@ -796,77 +640,20 @@ export default function NewServer() {
                 >
                   <span className="absolute inset-0 translate-x-[-100%] skew-x-[-20deg] bg-white/10 transition-transform duration-500 group-hover:translate-x-[200%]" />
                   <span className="relative flex items-center justify-center gap-2">
-                    {creating ? (
-                      <>
-                        <svg
-                          className="h-4 w-4 animate-spin"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z"
-                          />
-                        </svg>
-                        Создание…
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 4.5v15m7.5-7.5h-15"
-                          />
-                        </svg>
-                        Создать сервер
-                      </>
-                    )}
+                    {creating ? "Создание…" : "Создать сервер"}
                   </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => navigate("/dashboard")}
-                  className="w-full rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
-                >
-                  Отмена
                 </button>
               </div>
             </div>
           </form>
         </div>
       </div>
-
     </div>
   );
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-function SummaryRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: string;
-  label: string;
-  value: React.ReactNode;
-}) {
+function SummaryRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex flex-shrink-0 items-center gap-1.5 text-xs text-gray-400">
