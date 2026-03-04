@@ -111,9 +111,14 @@ func main() {
 	mux.HandleFunc("PUT /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.UpdatePortMapping, cfg.JWTSecret))
 	mux.HandleFunc("DELETE /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.DeletePortMapping, cfg.JWTSecret))
 
+	allowedOrigins := []string{
+		"https://serverdam.wydentis.xyz",
+	}
+	corsHandler := middleware.CORSMiddleware(allowedOrigins)(mux)
+
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
-		Handler:      mux,
+		Handler:      corsHandler,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

@@ -7,14 +7,17 @@ RUN apk add --no-cache git ca-certificates tzdata
 # Set working directory
 WORKDIR /build
 
+# Copy proto module first (required for local replace directive)
+COPY proto ../proto
+
 # Copy go mod files
-COPY go.mod go.sum ./
+COPY api/go.mod api/go.sum ./
 
 # Download dependencies
 RUN go mod download
 
-# Copy source code
-COPY . .
+# Copy API source code
+COPY api/ .
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o api ./cmd/api/main.go

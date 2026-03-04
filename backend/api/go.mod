@@ -10,7 +10,7 @@ require (
 	google.golang.org/grpc v1.79.1
 )
 
-replace github.com/wydentis/iaas-mvp/backend/proto => /home/wydentis/projects/iaas-mvp/backend/proto
+replace github.com/wydentis/iaas-mvp/backend/proto => ../proto
 
 require (
 	github.com/gorilla/websocket v1.5.3 // indirect
