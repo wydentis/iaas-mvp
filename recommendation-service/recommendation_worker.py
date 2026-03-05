@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 
 # --- Config ---
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+if not GEMINI_API_KEY:
+    logger.error("GEMINI_API_KEY environment variable is not set")
+    raise ValueError("GEMINI_API_KEY is required")
 RABBITMQ_URL = os.environ.get('RABBITMQ_URL', "amqp://guest:guest@localhost/")
 QUEUE_NAME = os.environ.get("QUEUE_NAME", "hardware_requests")
 
@@ -75,7 +78,19 @@ class HardwareWorker:
                     logger.info(f"Success: Replied to {message.correlation_id}")
 
             except Exception as e:
-                logger.error(f"Worker Error: {e}")
+                logger.error(f"Worker Error: {e}", exc_info=True)
+                if message.reply_to:
+                    error_payload = json.dumps({
+                        "error": "AI processing failed",
+                        "status": "error"
+                    }).encode()
+                    await self.exchange.publish(
+                        aio_pika.Message(
+                            body=error_payload,
+                            correlation_id=message.correlation_id,
+                        ),
+                        routing_key=message.reply_to,
+                    )
 
     async def start(self):
         """

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/wydentis/iaas-mvp/agent/internal/handler"
 	"github.com/wydentis/iaas-mvp/agent/internal/iptables"
@@ -13,6 +14,21 @@ import (
 )
 
 func main() {
+	// Structured JSON logging
+	logLevel := slog.LevelInfo
+	if lvl := os.Getenv("LOG_LEVEL"); lvl != "" {
+		switch strings.ToUpper(lvl) {
+		case "DEBUG":
+			logLevel = slog.LevelDebug
+		case "WARN":
+			logLevel = slog.LevelWarn
+		case "ERROR":
+			logLevel = slog.LevelError
+		}
+	}
+	logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+	slog.SetDefault(slog.New(logHandler))
+
 	lxd, err := provider.NewLXD(os.Getenv("LXD_SOCKET"))
 	if err != nil {
 		slog.Error("failed to initialize LXD", "err", err)
@@ -37,9 +53,11 @@ func main() {
 	}
 
 	server := handler.NewServer(lxd, iptablesManager)
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(handler.LoggingInterceptor),
+	)
 	node.RegisterNodeServiceServer(s, server)
-	slog.Info("gRPC server listening on :50051")
+	slog.Info("gRPC server listening", "addr", ":50051", "log_level", logLevel.String())
 
 	if err := s.Serve(lis); err != nil {
 		slog.Error("failed to serve", "err", err)

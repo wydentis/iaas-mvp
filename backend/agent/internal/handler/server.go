@@ -36,6 +36,8 @@ func NewServer(provider provider.Provider, portManager PortManager) *Server {
 }
 
 func (s *Server) CreateVPS(ctx context.Context, req *node.CreateRequest) (*node.CreateResponse, error) {
+	slog.Info("creating container", "id", req.Id, "image", req.Image, "cpu", req.Cpu, "ram", req.Ram, "disk", req.Storage)
+
 	specs := container.Specs{
 		RAM:        req.Ram,
 		CPUPercent: req.Cpu,
@@ -44,9 +46,11 @@ func (s *Server) CreateVPS(ctx context.Context, req *node.CreateRequest) (*node.
 
 	ip, err := s.provider.CreateContainer(req.Id, req.Image, specs, req.StartScript)
 	if err != nil {
+		slog.Error("failed to create container", "id", req.Id, "err", err)
 		return &node.CreateResponse{Success: false, ErrorMessage: err.Error()}, nil
 	}
 
+	slog.Info("container created", "id", req.Id, "ipv4", ip)
 	return &node.CreateResponse{Success: true, Ipv4: ip}, nil
 }
 
@@ -74,6 +78,8 @@ func (s *Server) GetVPS(ctx context.Context, req *node.GetRequest) (*node.GetRes
 }
 
 func (s *Server) SetVPSStatus(ctx context.Context, req *node.SetStatusRequest) (*node.SetStatusResponse, error) {
+	slog.Info("setting container status", "id", req.Id, "status", req.Status)
+
 	var status container.ContainerStatus
 	switch req.Status {
 	case node.ContainerStatus_RUNNING:
@@ -93,15 +99,20 @@ func (s *Server) SetVPSStatus(ctx context.Context, req *node.SetStatusRequest) (
 }
 
 func (s *Server) DeleteVPS(ctx context.Context, req *node.DeleteRequest) (*node.DeleteResponse, error) {
+	slog.Info("deleting container", "id", req.Id)
+
 	err := s.provider.DeleteContainer(req.Id)
 	if err != nil {
+		slog.Error("failed to delete container", "id", req.Id, "err", err)
 		return &node.DeleteResponse{Success: false, ErrorMessage: err.Error()}, nil
 	}
 
 	if err := s.portManager.CleanupContainer(req.Id); err != nil {
+		slog.Error("port cleanup failed after container deletion", "id", req.Id, "err", err)
 		return &node.DeleteResponse{Success: false, ErrorMessage: fmt.Sprintf("container deleted but port cleanup failed: %v", err)}, nil
 	}
 
+	slog.Info("container deleted", "id", req.Id)
 	return &node.DeleteResponse{Success: true}, nil
 }
 
@@ -130,6 +141,8 @@ func (s *Server) RunCommand(ctx context.Context, req *node.RunCommandRequest) (*
 }
 
 func (s *Server) CreatePortMapping(ctx context.Context, req *node.CreatePortMappingRequest) (*node.CreatePortMappingResponse, error) {
+	slog.Info("creating port mapping", "container_id", req.ContainerId, "container_port", req.ContainerPort, "host_port", req.HostPort, "protocol", req.Protocol)
+
 	c, err := s.provider.GetContainer(req.ContainerId)
 	if err != nil {
 		return &node.CreatePortMappingResponse{Success: false, ErrorMessage: err.Error()}, nil
@@ -195,7 +208,11 @@ func (s *Server) DeletePortMapping(ctx context.Context, req *node.DeletePortMapp
 }
 
 func (s *Server) StreamMetrics(req *node.MetricsRequest, stream node.NodeService_StreamMetricsServer) error {
-	collector := metrics.NewCollector(s.provider.(*provider.LXD).GetClient())
+	lxdProvider, ok := s.provider.(*provider.LXD)
+	if !ok {
+		return fmt.Errorf("metrics streaming requires LXD provider")
+	}
+	collector := metrics.NewCollector(lxdProvider.GetClient())
 	
 	refreshMs := req.RefreshMs
 	if refreshMs < 100 {
@@ -240,7 +257,11 @@ func (s *Server) StreamMetrics(req *node.MetricsRequest, stream node.NodeService
 }
 
 func (s *Server) StreamContainerMetrics(req *node.ContainerMetricsRequest, stream node.NodeService_StreamContainerMetricsServer) error {
-	collector := metrics.NewCollector(s.provider.(*provider.LXD).GetClient())
+	lxdProvider, ok := s.provider.(*provider.LXD)
+	if !ok {
+		return fmt.Errorf("metrics streaming requires LXD provider")
+	}
+	collector := metrics.NewCollector(lxdProvider.GetClient())
 	
 	refreshMs := req.RefreshMs
 	if refreshMs < 100 {

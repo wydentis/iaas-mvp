@@ -96,7 +96,7 @@ func (h *UserHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		slog.Error("sign in failed", "error", err)
-		json.Error(w, http.StatusInternalServerError, "sign in in error")
+		json.Error(w, http.StatusInternalServerError, "sign in failed")
 		return
 	}
 
@@ -217,8 +217,11 @@ func (h *UserHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	userBalance, err := h.Service.GetBalance(r.Context(), userID)
 	if errors.Is(err, repo.ErrUserNotFound) {
 		json.Error(w, http.StatusNotFound, "user not found")
+		return
 	} else if err != nil {
 		slog.Error("failed to get user balance", "error", err)
+		json.Error(w, http.StatusInternalServerError, "failed to get user balance")
+		return
 	}
 
 	json.Encode(w, http.StatusOK, userBalance)

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/wydentis/iaas-mvp/api/internal/config"
@@ -18,6 +19,21 @@ import (
 )
 
 func main() {
+	// Structured JSON logging for production, text for development
+	logLevel := slog.LevelInfo
+	if lvl := os.Getenv("LOG_LEVEL"); lvl != "" {
+		switch strings.ToUpper(lvl) {
+		case "DEBUG":
+			logLevel = slog.LevelDebug
+		case "WARN":
+			logLevel = slog.LevelWarn
+		case "ERROR":
+			logLevel = slog.LevelError
+		}
+	}
+	logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+	slog.SetDefault(slog.New(logHandler))
+
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("failed to load config", "err", err)
@@ -171,22 +187,32 @@ func main() {
 	mux.HandleFunc("DELETE /ai/chat", middleware.AuthMiddleware(wsHandler.ClearChatHistory, cfg.JWTSecret))
 
 	allowedOrigins := []string{
-		"https://serverdam.wydentis.xyz",
 		"http://localhost:5173",
 		"http://localhost:4173",
 		"http://localhost:3000",
 	}
+	if extra := os.Getenv("CORS_ORIGINS"); extra != "" {
+		for _, origin := range strings.Split(extra, ",") {
+			origin = strings.TrimSpace(origin)
+			if origin != "" {
+				allowedOrigins = append(allowedOrigins, origin)
+			}
+		}
+	}
 	corsHandler := middleware.CORSMiddleware(allowedOrigins)(mux)
+
+	// Wrap with request ID and logging middleware
+	finalHandler := middleware.RequestIDMiddleware(middleware.LoggingMiddleware(corsHandler))
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
-		Handler:      corsHandler,
+		Handler:      finalHandler,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	slog.Info("server started", "port", cfg.Port)
+	slog.Info("server started", "port", cfg.Port, "log_level", logLevel.String())
 	if err := server.ListenAndServe(); err != nil {
 		slog.Error("listen error", "err", err)
 		os.Exit(1)

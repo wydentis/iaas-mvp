@@ -19,8 +19,14 @@ class ChatWorker:
         self.queue_name = os.getenv("CONSULTER_RESPONSE_QUEUE", "chat_requests")
         self.model_id = os.getenv('AI_MODEL_NAME', 'gemini-2.0-flash')
         
+        # Validate API key
+        api_key = os.getenv('GEMINI_API_KEY')
+        if not api_key:
+            log.error("GEMINI_API_KEY environment variable is not set")
+            raise ValueError("GEMINI_API_KEY is required")
+        
         # Клиенты
-        self.client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
+        self.client = genai.Client(api_key=api_key)
         self.redis = redis.from_url(self.redis_url, decode_responses=True)
         
         # Состояние RabbitMQ
@@ -34,7 +40,7 @@ class ChatWorker:
         await self.redis.ltrim(key, -20, -1)
         await self.redis.expire(key, 86400)
 
-    async def get_formatted_history(self, user_id: str, limit: int = 5):
+    async def get_formatted_history(self, user_id: str, limit: int = 20):
         raw_history = await self.redis.lrange(f"chat:{user_id}", -limit, -1)
         history_objects = []
         for item in raw_history:
@@ -78,13 +84,25 @@ class ChatWorker:
                 user_text = body.get("message")
 
                 if not user_id or not user_text:
-                    log.warning("Missing user_id or message text")
+                    log.warning("Missing user_id or message text, dropping message")
+                    if message.reply_to:
+                        await self.channel.default_exchange.publish(
+                            aio_pika.Message(
+                                body=json.dumps({
+                                    "user_id": user_id or "unknown",
+                                    "status": "error",
+                                    "message": "Missing user_id or message text"
+                                }).encode(),
+                                correlation_id=message.correlation_id,
+                            ),
+                            routing_key=message.reply_to,
+                        )
                     return
 
                 log.info(f"Processing message for user_id={user_id}")
 
                 # 1. Получаем историю
-                chat_history = await self.get_formatted_history(user_id, limit=5)
+                chat_history = await self.get_formatted_history(user_id)
 
                 # 2. Взаимодействие с Gemini (используем асинхронный метод SDK)
                 try:

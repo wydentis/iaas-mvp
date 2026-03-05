@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	lxd "github.com/canonical/lxd/client"
@@ -15,6 +16,7 @@ import (
 
 type Collector struct {
 	lxdClient    lxd.InstanceServer
+	mu           sync.Mutex
 	prevCPUStats map[string]*CPUStats
 	prevTime     time.Time
 }
@@ -252,6 +254,9 @@ func (c *Collector) calculateContainerCPUPercent(containerID string, state *api.
 
 	now := time.Now()
 	currentUsage := state.CPU.Usage
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	prev, exists := c.prevCPUStats[containerID]
 	if !exists {
