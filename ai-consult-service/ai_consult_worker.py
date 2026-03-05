@@ -1,10 +1,14 @@
 import os
 import json
+import logging
 import redis.asyncio as redis # Using the async version of redis-py
 import asyncio
 import aio_pika
 from google import genai
 from google.genai import types
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger(__name__)
 
 # --- Configuration & Clients ---
 # We use async Redis to avoid blocking the event loop
@@ -46,6 +50,7 @@ async def process_message(message: aio_pika.IncomingMessage):
             body = json.loads(message.body.decode())
             user_id = body.get("user_id")
             user_text = body.get("message")
+            log.info(f"Received message for user_id={user_id}")
 
             if not user_id or not user_text:
                 return
@@ -92,7 +97,7 @@ async def process_message(message: aio_pika.IncomingMessage):
                 )
 
         except Exception as e:
-            print(f"Error processing message: {e}")
+            log.error(f"Error processing message: {e}", exc_info=True)
             
             # 5. Error Reply to RabbitMQ
             if message.reply_to:
@@ -112,7 +117,7 @@ async def process_message(message: aio_pika.IncomingMessage):
                         routing_key=message.reply_to,
                     )
                 except Exception as reply_err:
-                    print(f"Error sending error reply: {reply_err}")
+                    log.error(f"Error sending error reply: {reply_err}")
 
 async def main():
     # Setup RabbitMQ Connection
@@ -122,7 +127,7 @@ async def main():
     # Ensure the queue exists
     queue = await channel.declare_queue(QUEUE_NAME, durable=True)
 
-    print(f" [*] Waiting for messages in {QUEUE_NAME}. To exit press CTRL+C")
+    log.info(f"Waiting for messages in '{QUEUE_NAME}'. To exit press CTRL+C")
 
     # Start consuming
     await queue.consume(process_message)
