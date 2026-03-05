@@ -42,9 +42,11 @@ async def get_formatted_history(user_id: str, limit: int = 10):
             )
         )
     return history_objects
-
 # --- AI Worker Logic ---
 async def process_message(message: aio_pika.IncomingMessage):
+    # Use the channel associated with this specific message
+    channel = message.channel 
+    
     async with message.process():
         try:
             body = json.loads(message.body.decode())
@@ -55,12 +57,13 @@ async def process_message(message: aio_pika.IncomingMessage):
             if not user_id or not user_text:
                 return
 
-            # 1. Get History (Don't save the new message yet!)
             chat_history = await get_formatted_history(user_id, limit=10)
 
-            # 2. Gemini Interaction
+            # Gemini Interaction
             loop = asyncio.get_running_loop()
             try:
+                # Note: Using the new SDK's async capability is better than run_in_executor
+                # but keeping your logic for consistency:
                 response = await asyncio.wait_for(
                     loop.run_in_executor(
                         None,
@@ -71,20 +74,15 @@ async def process_message(message: aio_pika.IncomingMessage):
                 ai_text = response.text
             except asyncio.TimeoutError:
                 raise RuntimeError("AI Generation timed out after 30s")
-            except Exception as ai_err:
-                # If AI fails, we trigger the specific error reply logic
-                raise RuntimeError(f"AI Generation Failed: {ai_err}")
 
-            # 3. Save BOTH messages only on SUCCESS
-            # We wrap these in a gather to ensure both are handled
             await asyncio.gather(
                 save_message(user_id, "user", user_text),
                 save_message(user_id, "model", ai_text)
             )
 
-            # 4. Success Reply
+            # 4. Success Reply - Use message.channel.default_exchange
             if message.reply_to:
-                await message.channel.default_exchange.publish(
+                await channel.default_exchange.publish(
                     aio_pika.Message(
                         body=json.dumps({
                             "user_id": user_id,
@@ -99,17 +97,17 @@ async def process_message(message: aio_pika.IncomingMessage):
         except Exception as e:
             log.error(f"Error processing message: {e}", exc_info=True)
             
-            # 5. Error Reply to RabbitMQ
             if message.reply_to:
                 error_payload = json.dumps({
                     "user_id": body.get("user_id") if 'body' in locals() else "unknown",
                     "status": "error",
                     "code": 500,
-                    "message": "Failed to generate AI response. History was not updated."
+                    "message": "Failed to generate AI response."
                 }).encode()
 
                 try:
-                    await message.channel.default_exchange.publish(
+                    # Again, use message.channel
+                    await channel.default_exchange.publish(
                         aio_pika.Message(
                             body=error_payload,
                             correlation_id=message.correlation_id,
@@ -118,7 +116,7 @@ async def process_message(message: aio_pika.IncomingMessage):
                     )
                 except Exception as reply_err:
                     log.error(f"Error sending error reply: {reply_err}")
-
+                    
 async def main():
     # Setup RabbitMQ Connection
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
