@@ -55,9 +55,6 @@ export default function TopUp() {
             {/* Header */}
             <div className="border-b border-gray-100 px-7 py-6">
               <div className="mb-1 flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#B42124] text-lg font-bold ">
-                  ПС
-                </span>
                 <h1 className="text-2xl font-black text-red-700">
                   Пополнение баланса
                 </h1>

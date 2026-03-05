@@ -71,7 +71,7 @@ class ChatWorker:
                     chat = self.client.aio.chats.create(model=self.model_id, history=chat_history)
                     response = await asyncio.wait_for(
                         chat.send_message(user_text),
-                        timeout=30.0
+                        timeout=120.0
                     )
                     ai_text = response.text
                 except asyncio.TimeoutError:
