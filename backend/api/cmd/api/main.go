@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/wydentis/iaas-mvp/api/internal/config"
+	"github.com/wydentis/iaas-mvp/api/internal/devnode"
 	"github.com/wydentis/iaas-mvp/api/internal/handler"
 	"github.com/wydentis/iaas-mvp/api/internal/middleware"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
@@ -36,6 +37,24 @@ func main() {
 
 	nodeRepo := repo.NewNodeRepository(*db)
 	nodeManager := service.NewNodeManager(nodeRepo)
+
+	// Start mock dev node if enabled (for development/testing only).
+	// Disable by removing DEV_NODE_ENABLED=true from the environment before deploying.
+	if cfg.DevNode.Enabled {
+		mock := devnode.NewMockServer()
+		if err := mock.Start(cfg.DevNode.Addr); err != nil {
+			slog.Error("failed to start dev node", "err", err)
+			os.Exit(1)
+		}
+		defer mock.Stop()
+		addr := mock.Addr()
+		if err := devnode.EnsureDevNode(context.Background(), nodeRepo, cfg.DevNode, addr); err != nil {
+			slog.Error("failed to register dev node in DB", "err", err)
+			os.Exit(1)
+		}
+		slog.Info("devnode: mock node registered", "addr", addr)
+	}
+
 	if err := nodeManager.Init(context.Background()); err != nil {
 		slog.Error("failed to init node manager", "err", err)
 		os.Exit(1)

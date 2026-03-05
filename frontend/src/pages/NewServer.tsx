@@ -12,10 +12,21 @@ import { getCookie } from "../utils/cookies";
 import AnimatedBackground from "../components/AnimatedBackground";
 import Header from "../components/Header";
 
+
+
 // ── Pricing defaults (BYN/month, used when node has no pricing data) ──────────
 const DEFAULT_CPU_PRICE = 14;
 const DEFAULT_RAM_PRICE = 9;
 const DEFAULT_DISK_PRICE = 0.6;
+const TEMPORARY_NODE: Node = {
+  node_id: "temp-node-1",
+  name: "Локальный узел (Демо)",
+  ip_address: "127.0.0.1",
+  status: "online",
+  cpu_price: DEFAULT_CPU_PRICE,
+  ram_price: DEFAULT_RAM_PRICE,
+  disk_price: DEFAULT_DISK_PRICE,
+};
 
 // ── OS images ─────────────────────────────────────────────────────────────────
 const IMAGES = [
@@ -206,7 +217,7 @@ export default function NewServer() {
         setNetworks(nets ?? []);
       })
       .catch(() => {
-        setNodes([]);
+        setNodes([TEMPORARY_NODE]); // TODO: DELETE
         setNetworks([]);
       });
   }, [navigate]);

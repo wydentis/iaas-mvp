@@ -7,5 +7,13 @@
     "db_name": "${DB_NAME}",
     "db_host": "${DB_HOST}"
   },
-  "rabbitmq_url": "${RABBITMQ_URL}"
+  "rabbitmq_url": "${RABBITMQ_URL}",
+  "dev_node": {
+    "enabled": false,
+    "addr": "${DEV_NODE_ADDR}",
+    "name": "dev-node",
+    "cpu": 16,
+    "ram": 32768,
+    "disk": 500
+  }
 }

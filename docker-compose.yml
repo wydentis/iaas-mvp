@@ -31,6 +31,10 @@ services:
       DB_NAME: ${DB_NAME:-iaas_db}
       DB_HOST: db:5432
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672/}
+      # Set DEV_NODE_ENABLED=true to start a mock LXD node for development/testing.
+      # Remove or set to false in production.
+      DEV_NODE_ENABLED: ${DEV_NODE_ENABLED:-false}
+      DEV_NODE_ADDR: ${DEV_NODE_ADDR:-localhost:50051}
     ports:
       - "8080:8080"
     volumes:
