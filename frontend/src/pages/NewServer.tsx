@@ -332,7 +332,7 @@ export default function NewServer() {
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 lg:overflow-visible">
           <div className="flex items-center gap-3 border-b border-gray-100 px-8 py-5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-700">
               <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -430,8 +430,8 @@ export default function NewServer() {
             </div>
           </div>
 
-          <form onSubmit={handleCreate} className="grid gap-6 px-8 py-8">
-            <div className="min-h-[600px] space-y-10">
+          <form onSubmit={handleCreate} className="grid gap-6 px-8 py-8 lg:grid-cols-[1fr_360px]">
+            <div className="order-1 min-h-[600px] space-y-10 lg:order-1">
               
               <section>
                 <StepHeader step="1" title="Название сервера" />
@@ -590,7 +590,7 @@ export default function NewServer() {
             </div>
 
             {/* Summary block */}
-            <div>
+            <div className="order-2 self-start lg:order-2 lg:sticky lg:top-24">
               <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50 p-6 shadow-inner">
                 <h2 className="text-xs font-black uppercase tracking-wider text-gray-400">
                   Итог

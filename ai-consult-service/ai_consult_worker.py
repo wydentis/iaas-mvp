@@ -34,7 +34,7 @@ class ChatWorker:
         await self.redis.ltrim(key, -20, -1)
         await self.redis.expire(key, 86400)
 
-    async def get_formatted_history(self, user_id: str, limit: int = 10):
+    async def get_formatted_history(self, user_id: str, limit: int = 5):
         raw_history = await self.redis.lrange(f"chat:{user_id}", -limit, -1)
         history_objects = []
         for item in raw_history:
@@ -84,7 +84,7 @@ class ChatWorker:
                 log.info(f"Processing message for user_id={user_id}")
 
                 # 1. Получаем историю
-                chat_history = await self.get_formatted_history(user_id)
+                chat_history = await self.get_formatted_history(user_id, limit=5)
 
                 # 2. Взаимодействие с Gemini (используем асинхронный метод SDK)
                 try:
