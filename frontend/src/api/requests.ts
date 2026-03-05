@@ -284,7 +284,7 @@ export interface UpdatePortMappingPayload {
 export async function listContainers(): Promise<Container[]> {
   try {
     const { data } = await api.get<Container[]>("/vps", { headers: authHeaders() });
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -388,7 +388,7 @@ export async function updatePortMapping(id: string, mappingId: string, payload: 
 export async function listPublicNodes(): Promise<Node[]> {
   try {
     const { data } = await api.get<Node[]>("/nodes");
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -595,7 +595,7 @@ export async function deleteSnapshot(id: string): Promise<void> {
 export async function adminListUsers(): Promise<AdminUser[]> {
   try {
     const { data } = await api.get<AdminUser[]>("/admin/users", { headers: authHeaders() });
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -604,7 +604,7 @@ export async function adminListUsers(): Promise<AdminUser[]> {
 export async function adminListContainers(): Promise<Container[]> {
   try {
     const { data } = await api.get<Container[]>("/admin/containers", { headers: authHeaders() });
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -613,7 +613,7 @@ export async function adminListContainers(): Promise<Container[]> {
 export async function adminListNodes(): Promise<Node[]> {
   try {
     const { data } = await api.get<Node[]>("/admin/nodes", { headers: authHeaders() });
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }
@@ -732,7 +732,7 @@ export async function clearChatHistory(): Promise<void> {
 export async function listFreePublicIPs(nodeId: string): Promise<PublicIP[]> {
   try {
     const { data } = await api.get<PublicIP[]>(`/nodes/${nodeId}/public-ips`);
-    return data;
+    return data ?? [];
   } catch (err) {
     throw new Error(extractMessage(err));
   }

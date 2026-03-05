@@ -237,7 +237,7 @@ export default function NewServer() {
   // Load public IPs when node changes
   useEffect(() => {
     if (!nodeId) { setPublicIPs([]); return; }
-    listFreePublicIPs(nodeId).then(setPublicIPs).catch(() => setPublicIPs([]));
+    listFreePublicIPs(nodeId).then(ips => setPublicIPs(ips ?? [])).catch(() => setPublicIPs([]));
   }, [nodeId]);
 
   function selectPlan(id: string) {
