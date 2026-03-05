@@ -122,6 +122,7 @@ func main() {
 	// AI endpoints
 	mux.HandleFunc("POST /ai/hardware-recommendation", middleware.AuthMiddleware(aiHandler.GetHardwareRecommendation, cfg.JWTSecret))
 	mux.HandleFunc("GET /ai/chat", middleware.AuthMiddleware(wsHandler.AIChat, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /ai/chat", middleware.AuthMiddleware(wsHandler.ClearChatHistory, cfg.JWTSecret))
 
 	allowedOrigins := []string{
 		"https://serverdam.wydentis.xyz",

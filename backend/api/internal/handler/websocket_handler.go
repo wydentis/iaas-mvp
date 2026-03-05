@@ -198,3 +198,18 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("AI chat WebSocket disconnected", "userID", userID)
 }
+
+func (h *WebSocketHandler) ClearChatHistory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("userID").(string)
+	if !ok {
+		jsonutil.Error(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if err := h.RabbitMQService.ClearChatHistory(r.Context(), userID); err != nil {
+		jsonutil.Error(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

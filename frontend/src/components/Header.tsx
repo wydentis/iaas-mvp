@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getBalance, getUserInfo } from "../api/requests";
+import { getBalance, getUserInfo, clearChatHistory } from "../api/requests";
 import { getCookie, removeCookie } from "../utils/cookies";
 
 export default function Header() {
@@ -20,7 +20,14 @@ export default function Header() {
       .catch(() => setUsername(null));
   }, [isLoggedIn]);
 
-  function handleSignOut() {
+  async function handleSignOut() {
+    if (isLoggedIn) {
+      try {
+        await clearChatHistory();
+      } catch (e) {
+        console.error("Failed to clear chat history", e);
+      }
+    }
     removeCookie("access_token");
     removeCookie("refresh_token");
     navigate("/");

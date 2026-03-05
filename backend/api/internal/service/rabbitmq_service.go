@@ -167,6 +167,30 @@ func (s *RabbitMQService) GetHardwareRecommendation(ctx context.Context, text st
 	return &response, nil
 }
 
+// Clear chat history
+func (s *RabbitMQService) ClearChatHistory(ctx context.Context, userID string) error {
+	req := map[string]string{
+		"user_id": userID,
+		"command": "clear_history",
+	}
+
+	respBody, err := s.CallRPC(ctx, "chat_requests", req, 10*time.Second)
+	if err != nil {
+		return err
+	}
+
+	var response ChatResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return fmt.Errorf("failed to unmarshal clear chat response: %w", err)
+	}
+
+	if response.Status == "error" {
+		return fmt.Errorf(response.Message)
+	}
+
+	return nil
+}
+
 // Get chat response
 func (s *RabbitMQService) GetChatResponse(ctx context.Context, userID, message string) (*ChatResponse, error) {
 	req := ChatRequest{

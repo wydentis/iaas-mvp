@@ -602,3 +602,11 @@ export function createAiChatSocket(): WebSocket {
   const url = buildWsUrl(`/ai/chat?token=${encodeURIComponent(token)}&refresh_ms=${5000}`);
   return new WebSocket(url);
 }
+
+export async function clearChatHistory(): Promise<void> {
+  try {
+    await api.delete("/ai/chat", { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}

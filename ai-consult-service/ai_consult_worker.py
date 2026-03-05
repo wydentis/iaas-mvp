@@ -54,6 +54,27 @@ class ChatWorker:
             try:
                 body = json.loads(message.body.decode())
                 user_id = body.get("user_id")
+                command = body.get("command", "chat")
+
+                if command == "clear_history":
+                    log.info(f"Clearing history for user_id={user_id}")
+                    key = f"chat:{user_id}"
+                    await self.redis.delete(key)
+                    
+                    if message.reply_to:
+                        await self.channel.default_exchange.publish(
+                            aio_pika.Message(
+                                body=json.dumps({
+                                    "user_id": user_id,
+                                    "status": "success",
+                                    "message": "History cleared"
+                                }).encode(),
+                                correlation_id=message.correlation_id,
+                            ),
+                            routing_key=message.reply_to,
+                        )
+                    return
+
                 user_text = body.get("message")
 
                 if not user_id or not user_text:
