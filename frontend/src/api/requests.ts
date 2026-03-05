@@ -599,6 +599,6 @@ export function createMetricsSocket(containerId: string, refreshMs = 1000): WebS
 
 export function createAiChatSocket(): WebSocket {
   const token = getCookie("access_token") ?? "";
-  const url = buildWsUrl(`/ai/chat?token=${encodeURIComponent(token)}`);
+  const url = buildWsUrl(`/ai/chat?token=${encodeURIComponent(token)}&refresh_ms=${5000}`);
   return new WebSocket(url);
 }
