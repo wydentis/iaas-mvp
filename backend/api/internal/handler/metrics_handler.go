@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/gorilla/websocket"
 	jsonutil "github.com/wydentis/iaas-mvp/api/internal/json"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
 	"github.com/wydentis/iaas-mvp/api/internal/service"
@@ -50,6 +52,17 @@ func (h *MetricsHandler) StreamMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
+
+	// Keep-alive: ping every 25s
+	go func() {
+		ticker := time.NewTicker(25 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(10*time.Second)); err != nil {
+				return
+			}
+		}
+	}()
 
 	// Get gRPC connection to node
 	grpcConn, err := h.NodeManager.GetConnection(nodeID)
@@ -136,6 +149,17 @@ func (h *MetricsHandler) StreamContainerMetrics(w http.ResponseWriter, r *http.R
 		return
 	}
 	defer conn.Close()
+
+	// Keep-alive: ping every 25s
+	go func() {
+		ticker := time.NewTicker(25 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(10*time.Second)); err != nil {
+				return
+			}
+		}
+	}()
 
 	// Get gRPC connection using container's node_id
 	grpcConn, err := h.NodeManager.GetConnection(container.NodeID)

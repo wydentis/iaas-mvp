@@ -309,3 +309,20 @@ func (h *ContainerHandler) RunCommand(w http.ResponseWriter, r *http.Request) {
 
 	json.Encode(w, http.StatusOK, map[string]string{"output": output})
 }
+
+func (h *ContainerHandler) ListUserContainers(w http.ResponseWriter, r *http.Request) {
+userID := r.PathValue("id")
+if userID == "" {
+json.Error(w, http.StatusBadRequest, "user id required")
+return
+}
+
+containers, err := h.Service.ListContainers(r.Context(), userID)
+if err != nil {
+slog.Error("failed to list user containers", "err", err)
+json.Error(w, http.StatusInternalServerError, err.Error())
+return
+}
+
+json.Encode(w, http.StatusOK, containers)
+}

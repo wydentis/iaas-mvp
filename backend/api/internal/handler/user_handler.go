@@ -290,3 +290,53 @@ func (h *UserHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 
 	json.Encode(w, http.StatusOK, users)
 }
+
+func (h *UserHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+userID := r.PathValue("id")
+if userID == "" {
+json.Error(w, http.StatusBadRequest, "user id required")
+return
+}
+
+type roleReq struct {
+Role string `json:"role"`
+}
+
+req, err := json.Decode[roleReq](r)
+if err != nil {
+json.Error(w, http.StatusBadRequest, "invalid request body")
+return
+}
+
+err = h.Service.UpdateUserRole(r.Context(), userID, req.Role)
+if errors.Is(err, repo.ErrUserNotFound) {
+json.Error(w, http.StatusNotFound, "user not found")
+return
+} else if err != nil {
+slog.Error("failed to update user role", "error", err)
+json.Error(w, http.StatusBadRequest, err.Error())
+return
+}
+
+json.Encode(w, http.StatusOK, map[string]string{"message": "role updated successfully"})
+}
+
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+userID := r.PathValue("id")
+if userID == "" {
+json.Error(w, http.StatusBadRequest, "user id required")
+return
+}
+
+err := h.Service.DeleteUser(r.Context(), userID)
+if errors.Is(err, repo.ErrUserNotFound) {
+json.Error(w, http.StatusNotFound, "user not found")
+return
+} else if err != nil {
+slog.Error("failed to delete user", "error", err)
+json.Error(w, http.StatusInternalServerError, "failed to delete user")
+return
+}
+
+json.Encode(w, http.StatusOK, map[string]string{"message": "user deleted successfully"})
+}

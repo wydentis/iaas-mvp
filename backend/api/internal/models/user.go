@@ -60,3 +60,16 @@ type UserUpdatePasswordRequest struct {
 type UserBalance struct {
 	Amount int `json:"amount"`
 }
+
+type AdminUserInfo struct {
+	ID        string    `json:"user_id"`
+	Username  string    `json:"username"`
+	Name      string    `json:"name"`
+	Surname   string    `json:"surname"`
+	Email     string    `json:"email"`
+	Phone     string    `json:"phone"`
+	Balance   int       `json:"balance"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}

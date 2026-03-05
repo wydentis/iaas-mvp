@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   adminListUsers,
@@ -7,6 +7,10 @@ import {
   adminCreateNode,
   adminUpdateNode,
   adminDeleteNode,
+  adminUpdateUserRole,
+  adminDeleteUser,
+  adminGetUserContainers,
+  adminDeleteContainer,
   getUserInfo,
 } from "../api/requests";
 import type {
@@ -105,6 +109,12 @@ export default function Admin() {
 
   // Tenants search
   const [tenantSearch, setTenantSearch] = useState("");
+
+  // User management
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [userContainers, setUserContainers] = useState<Container[]>([]);
+  const [loadingUserContainers, setLoadingUserContainers] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Auth + role guard
   useEffect(() => {
@@ -239,6 +249,72 @@ export default function Admin() {
     if (!limitsUser) return;
     saveLimits(limitsUser.user_id, limitsForm);
     setLimitsUser(null);
+  }
+
+  async function handleToggleRole(user: AdminUser) {
+    const newRole = user.role === "admin" ? "user" : "admin";
+    if (!confirm(`Изменить роль ${user.username} на "${newRole}"?`)) return;
+    setActionLoading(user.user_id);
+    try {
+      await adminUpdateUserRole(user.user_id, newRole);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === user.user_id ? { ...u, role: newRole } : u,
+        ),
+      );
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Ошибка");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleDeleteUser(user: AdminUser) {
+    if (!confirm(`Удалить пользователя ${user.username}? Все его серверы будут удалены!`)) return;
+    setActionLoading(user.user_id);
+    try {
+      await adminDeleteUser(user.user_id);
+      setUsers((prev) => prev.filter((u) => u.user_id !== user.user_id));
+      setContainers((prev) => prev.filter((c) => c.user_id !== user.user_id));
+      if (expandedUserId === user.user_id) {
+        setExpandedUserId(null);
+        setUserContainers([]);
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Ошибка");
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleViewServers(userId: string) {
+    if (expandedUserId === userId) {
+      setExpandedUserId(null);
+      setUserContainers([]);
+      return;
+    }
+    setExpandedUserId(userId);
+    setLoadingUserContainers(true);
+    try {
+      const c = await adminGetUserContainers(userId);
+      setUserContainers(c);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Ошибка загрузки серверов");
+      setExpandedUserId(null);
+    } finally {
+      setLoadingUserContainers(false);
+    }
+  }
+
+  async function handleAdminDeleteContainer(containerId: string) {
+    if (!confirm("Удалить этот сервер?")) return;
+    try {
+      await adminDeleteContainer(containerId);
+      setUserContainers((prev) => prev.filter((c) => c.container_id !== containerId));
+      setContainers((prev) => prev.filter((c) => c.container_id !== containerId));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Ошибка");
+    }
   }
 
   if (loadingAll)
@@ -676,8 +752,8 @@ export default function Admin() {
                       limits.max_vps > 0 && usage.vps > limits.max_vps;
                     const overLimit = overCpu || overRam || overDisk || overVps;
                     return (
+                      <React.Fragment key={u.user_id}>
                       <tr
-                        key={u.user_id}
                         className={`border-b border-gray-50 transition last:border-0 ${overLimit ? "bg-red-50/50" : "hover:bg-gray-50"}`}
                       >
                         <td className="px-5 py-3">
@@ -740,14 +816,86 @@ export default function Admin() {
                           </span>
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <button
-                            onClick={() => openLimits(u)}
-                            className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-                          >
-                            Лимиты
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleViewServers(u.user_id)}
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${expandedUserId === u.user_id ? "border-red-300 bg-red-50 text-red-700" : "border-gray-200 bg-gray-50 text-gray-700 hover:border-red-200 hover:bg-red-50 hover:text-red-700"}`}
+                            >
+                              Серверы
+                            </button>
+                            <button
+                              onClick={() => handleToggleRole(u)}
+                              disabled={actionLoading === u.user_id}
+                              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                            >
+                              {u.role === "admin" ? "Понизить" : "Повысить"}
+                            </button>
+                            <button
+                              onClick={() => openLimits(u)}
+                              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                            >
+                              Лимиты
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              disabled={actionLoading === u.user_id}
+                              className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                            >
+                              Удалить
+                            </button>
+                          </div>
                         </td>
                       </tr>
+                      {expandedUserId === u.user_id && (
+                        <tr>
+                          <td colSpan={8} className="bg-gray-50/50 px-5 py-3">
+                            {loadingUserContainers ? (
+                              <div className="flex items-center gap-2 text-xs text-gray-400">
+                                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                </svg>
+                                Загрузка серверов…
+                              </div>
+                            ) : userContainers.length === 0 ? (
+                              <p className="text-xs text-gray-400">Серверов нет</p>
+                            ) : (
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-left text-gray-500">
+                                    <th className="pb-2 font-semibold">Сервер</th>
+                                    <th className="pb-2 font-semibold">Образ</th>
+                                    <th className="pb-2 font-semibold">Ресурсы</th>
+                                    <th className="pb-2 font-semibold">IP</th>
+                                    <th className="pb-2 font-semibold">Статус</th>
+                                    <th className="pb-2 text-right font-semibold" />
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {userContainers.map((c) => (
+                                    <tr key={c.container_id} className="border-t border-gray-100">
+                                      <td className="py-2 font-semibold text-gray-900">{c.name}</td>
+                                      <td className="py-2 font-mono text-gray-600">{c.image}</td>
+                                      <td className="py-2 text-gray-600">{c.cpu} CPU · {formatRAM(c.ram)} · {c.disk} ГБ</td>
+                                      <td className="py-2 font-mono text-gray-600">{c.ip_address || "—"}</td>
+                                      <td className="py-2"><StatusBadge status={c.status} /></td>
+                                      <td className="py-2 text-right">
+                                        <button
+                                          onClick={() => handleAdminDeleteContainer(c.container_id)}
+                                          className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100"
+                                        >
+                                          Удалить
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     );
                   })}
                   {filteredTenants.length === 0 && (

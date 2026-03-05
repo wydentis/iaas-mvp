@@ -2,14 +2,21 @@
 
 ## Overview
 
-Private networks in this IaaS platform allow you to create isolated network segments for your containers (VPS instances). Each network has its own subnet, gateway, and IP address management system.
+Private networks in this IaaS platform allow you to group your containers (VPS instances) and track which servers are logically connected. When you attach a container to a private network, the system records the container's **actual LXD bridge IP** — the same IP the container uses on the host network.
 
-## Network Architecture
+## How Private Networks Actually Work
 
-- **Subnet Range**: Auto-generated from 10.0.0.0/8 private range (typically /24 networks)
-- **Gateway**: Automatically assigned as the first IP (.1) in the subnet
-- **IP Allocation**: Container IPs start from .2 and are auto-assigned
-- **Multi-Network**: Containers can belong to multiple networks simultaneously
+All LXD containers on a node share a single bridge (`lxdbr0`). Each container gets a real IP address from this bridge (e.g., `10.182.169.x` on node-1). When you create a "private network" and attach containers, the system:
+
+1. Records the network as metadata in PostgreSQL (name, description, subnet label)
+2. Stores each attached container's **real IP address** (from `containers.ip_address`) in `network_attachments`
+3. Containers on the same node can already ping each other using these real IPs
+
+**Important**: The network subnet/gateway fields are organizational labels. The actual connectivity between containers is provided by the shared LXD bridge on each node.
+
+### Public Access
+
+Containers do not get dedicated public IPs. Public access is provided via **port mappings** — each container can have host ports forwarded to its internal ports (e.g., `host:12345 → container:22`). This is configured when creating the container or via the port mapping API.
 
 ## Authentication
 
@@ -142,8 +149,7 @@ Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "container_id": "container-uuid",
-  "ip_address": "10.100.5.10"  // Optional: auto-assigned if omitted
+  "container_id": "container-uuid"
 }
 ```
 
@@ -153,15 +159,15 @@ Authorization: Bearer <token>
   "id": "uuid",
   "network_id": "network-uuid",
   "container_id": "container-uuid",
-  "ip_address": "10.100.5.10",
+  "ip_address": "10.182.169.42",
   "created_at": "2026-03-04T13:00:00Z"
 }
 ```
 
-**How IP Auto-Assignment Works:**
-- System scans the network subnet for available IPs
-- Starts from .2 (skips .1 which is gateway)
-- Returns first available IP not currently assigned
+**How IP Assignment Works:**
+- The system looks up the container's actual IP address from the `containers` table
+- This is the real IP assigned by the LXD bridge (e.g., `lxdbr0`)
+- Containers on the same node can ping each other using these IPs
 
 **Error Responses:**
 - `404 Not Found` - Network or container doesn't exist
@@ -257,8 +263,10 @@ If user needs specific subnet ranges, provide the `subnet` parameter during netw
 
 - **Authorization**: All operations verify user ownership of both networks and containers
 - **Deletion Safety**: Networks with attached containers cannot be deleted
-- **IP Validation**: Manually specified IPs must be within the network subnet
-- **Multi-Network Support**: A single container can be attached to multiple networks, receiving a different IP in each
+- **Real IPs**: When attaching a container, the system uses the container's actual LXD bridge IP (not a fictional/generated IP)
+- **Same-Node Connectivity**: Containers on the same node can reach each other via their real IPs (they share the LXD bridge)
+- **Multi-Network Support**: A single container can be attached to multiple networks for organizational purposes
+- **Public Access**: There are no dedicated public IPs — use port mappings for external access
 - **Automatic Management**: Gateway IP and subnet generation are handled automatically unless explicitly specified
 
 ---

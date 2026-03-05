@@ -272,6 +272,44 @@
 - **Path:** `/admin/containers`
 - **Auth Required:** YES (Admin only)
 - **What it does:** Returns all containers from all users
+
+### 12a. Update User Role (Admin)
+- **Method:** PUT
+- **Path:** `/admin/users/{id}/role`
+- **Auth Required:** YES (Admin only)
+- **What it does:** Promote or demote a user
+- **Request Body:**
+  ```json
+  {
+    "role": "user|admin"
+  }
+  ```
+- **Success Response (200):**
+  ```json
+  { "message": "role updated successfully" }
+  ```
+
+### 12b. Delete User (Admin)
+- **Method:** DELETE
+- **Path:** `/admin/users/{id}`
+- **Auth Required:** YES (Admin only)
+- **What it does:** Deletes a user and all their containers (cascading delete)
+- **Success Response (200):**
+  ```json
+  { "message": "user deleted successfully" }
+  ```
+
+### 12c. Get User's Containers (Admin)
+- **Method:** GET
+- **Path:** `/admin/users/{id}/containers`
+- **Auth Required:** YES (Admin only)
+- **What it does:** Lists all containers belonging to a specific user
+
+### 12d. Delete Container (Admin)
+- **Method:** DELETE
+- **Path:** `/admin/containers/{id}`
+- **Auth Required:** YES (Admin only)
+- **What it does:** Deletes any container regardless of ownership
 - **Success Response (200):**
   ```json
   [

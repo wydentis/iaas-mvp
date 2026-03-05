@@ -638,6 +638,39 @@ export async function adminFindUser(query: { email?: string; username?: string; 
   }
 }
 
+export async function adminUpdateUserRole(userId: string, role: "user" | "admin"): Promise<void> {
+  try {
+    await api.put(`/admin/users/${userId}/role`, { role }, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminDeleteUser(userId: string): Promise<void> {
+  try {
+    await api.delete(`/admin/users/${userId}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminGetUserContainers(userId: string): Promise<Container[]> {
+  try {
+    const { data } = await api.get<Container[]>(`/admin/users/${userId}/containers`, { headers: authHeaders() });
+    return data ?? [];
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function adminDeleteContainer(containerId: string): Promise<void> {
+  try {
+    await api.delete(`/admin/containers/${containerId}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
 // ── AI services ────────────────────────────────────────────────────────────────
 export async function getHardwareRecommendation(text: string): Promise<HardwareRecommendation> {
   try {

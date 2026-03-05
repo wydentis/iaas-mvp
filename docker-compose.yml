@@ -121,7 +121,7 @@ services:
     build: ./frontend
     container_name: iaas-frontend
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "${FRONTEND_PORT:-9091}:80"
     depends_on:
       - api
     networks:

@@ -89,7 +89,7 @@ func main() {
 	portMappingHandler := handler.NewPortMappingHandler(portMappingService)
 
 	networkRepo := repo.NewNetworkRepository(*db)
-	networkService := service.NewNetworkService(networkRepo)
+	networkService := service.NewNetworkService(networkRepo, containerRepo)
 	networkHandler := handler.NewNetworkHandler(networkService)
 
 	snapshotRepo := repo.NewSnapshotRepository(*db)
@@ -128,6 +128,12 @@ func main() {
 	mux.HandleFunc("GET /admin/users", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.ListUsers), cfg.JWTSecret))
 	mux.HandleFunc("GET /admin/user", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.SearchUsers), cfg.JWTSecret))
 	mux.HandleFunc("GET /admin/containers", middleware.AuthMiddleware(middleware.AdminMiddleware(containerHandler.ListAllContainers), cfg.JWTSecret))
+
+	// admin user management
+	mux.HandleFunc("PUT /admin/users/{id}/role", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.UpdateUserRole), cfg.JWTSecret))
+	mux.HandleFunc("DELETE /admin/users/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(userHandler.DeleteUser), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/users/{id}/containers", middleware.AuthMiddleware(middleware.AdminMiddleware(containerHandler.ListUserContainers), cfg.JWTSecret))
+	mux.HandleFunc("DELETE /admin/containers/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(containerHandler.DeleteContainer), cfg.JWTSecret))
 
 	// nodes (admin only)
 	mux.HandleFunc("POST /admin/nodes", middleware.AuthMiddleware(middleware.AdminMiddleware(nodeHandler.CreateNode), cfg.JWTSecret))

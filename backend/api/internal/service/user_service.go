@@ -126,46 +126,65 @@ func (s *UserService) ChangeBalance(ctx context.Context, userID string, amount i
 	return s.Repo.ChangeBalance(ctx, userID, amount)
 }
 
-func (s *UserService) ListUsers(ctx context.Context) ([]*models.UserInfo, error) {
+func (s *UserService) ListUsers(ctx context.Context) ([]*models.AdminUserInfo, error) {
 	users, err := s.Repo.ListUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var userInfos []*models.UserInfo
+	var result []*models.AdminUserInfo
 	for _, user := range users {
-		userInfos = append(userInfos, &models.UserInfo{
-			Username: user.Username,
-			Name:     user.Name,
-			Surname:  user.Surname,
-			Email:    user.Email,
-			Phone:    user.Phone,
-			Role:     user.Role,
+		result = append(result, &models.AdminUserInfo{
+			ID:        user.ID,
+			Username:  user.Username,
+			Name:      user.Name,
+			Surname:   user.Surname,
+			Email:     user.Email,
+			Phone:     user.Phone,
+			Balance:   user.Balance,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 
-	return userInfos, nil
+	return result, nil
 }
 
-func (s *UserService) SearchUsers(ctx context.Context, query string) ([]*models.UserInfo, error) {
+func (s *UserService) SearchUsers(ctx context.Context, query string) ([]*models.AdminUserInfo, error) {
 	users, err := s.Repo.SearchUsers(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	var userInfos []*models.UserInfo
+	var result []*models.AdminUserInfo
 	for _, user := range users {
-		userInfos = append(userInfos, &models.UserInfo{
-			Username: user.Username,
-			Name:     user.Name,
-			Surname:  user.Surname,
-			Email:    user.Email,
-			Phone:    user.Phone,
-			Role:     user.Role,
+		result = append(result, &models.AdminUserInfo{
+			ID:        user.ID,
+			Username:  user.Username,
+			Name:      user.Name,
+			Surname:   user.Surname,
+			Email:     user.Email,
+			Phone:     user.Phone,
+			Balance:   user.Balance,
+			Role:      user.Role,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 
-	return userInfos, nil
+	return result, nil
+}
+
+func (s *UserService) UpdateUserRole(ctx context.Context, userID string, role string) error {
+	if role != "user" && role != "admin" {
+		return errors.New("invalid role: must be 'user' or 'admin'")
+	}
+	return s.Repo.UpdateUserRole(ctx, userID, role)
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, userID string) error {
+	return s.Repo.DeleteUser(ctx, userID)
 }
 
 func (s *UserService) RefreshToken(ctx context.Context, req models.RefreshRequest) (*models.AuthResponse, error) {

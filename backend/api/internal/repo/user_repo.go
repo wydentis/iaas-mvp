@@ -321,3 +321,38 @@ func (r *UserRepository) SearchUsers(ctx context.Context, query string) ([]*mode
 
 	return users, nil
 }
+
+func (r *UserRepository) UpdateUserRole(ctx context.Context, userID string, role string) error {
+query := `
+UPDATE users
+SET role = $2, updated_at = NOW()
+WHERE user_id = $1
+`
+commandTag, err := r.Storage.Pool.Exec(ctx, query, userID, role)
+if err != nil {
+return err
+}
+
+if commandTag.RowsAffected() == 0 {
+return ErrUserNotFound
+}
+
+return nil
+}
+
+func (r *UserRepository) DeleteUser(ctx context.Context, userID string) error {
+query := `
+DELETE FROM users
+WHERE user_id = $1
+`
+commandTag, err := r.Storage.Pool.Exec(ctx, query, userID)
+if err != nil {
+return err
+}
+
+if commandTag.RowsAffected() == 0 {
+return ErrUserNotFound
+}
+
+return nil
+}

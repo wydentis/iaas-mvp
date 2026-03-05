@@ -3,18 +3,18 @@ package service
 import (
 	"context"
 	"fmt"
-	"math/rand"
 
 	"github.com/wydentis/iaas-mvp/api/internal/models"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
 )
 
 type NetworkService struct {
-	Repo *repo.NetworkRepository
+	Repo          *repo.NetworkRepository
+	ContainerRepo *repo.ContainerRepository
 }
 
-func NewNetworkService(r *repo.NetworkRepository) *NetworkService {
-	return &NetworkService{r}
+func NewNetworkService(r *repo.NetworkRepository, cr *repo.ContainerRepository) *NetworkService {
+	return &NetworkService{Repo: r, ContainerRepo: cr}
 }
 
 func (s *NetworkService) CreateNetwork(ctx context.Context, userID string, req models.CreateNetworkRequest) (*models.Network, error) {
@@ -82,15 +82,12 @@ func (s *NetworkService) AttachContainer(ctx context.Context, userID, networkID 
 		return nil, ErrUnauthorized
 	}
 
-	ipAddr := ""
-	if req.IPAddress != nil && *req.IPAddress != "" {
-		ipAddr = *req.IPAddress
-	} else {
-		// Auto-assign an IP in the subnet
-		var a, b, c int
-		fmt.Sscanf(n.Subnet, "%d.%d.%d.", &a, &b, &c)
-		ipAddr = fmt.Sprintf("%d.%d.%d.%d", a, b, c, rand.Intn(253)+2)
+	// Use the container's actual IP address from the containers table
+	container, err := s.ContainerRepo.GetContainerByID(ctx, req.ContainerID)
+	if err != nil {
+		return nil, fmt.Errorf("container not found: %w", err)
 	}
+	ipAddr := container.IPAddress
 
 	att := &models.NetworkAttachment{
 		NetworkID:   networkID,
