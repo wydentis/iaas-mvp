@@ -35,7 +35,7 @@ const PLANS = [
   { id: "standard", label: "Стандарт", cpu: 2, ram: 2048, disk: 40, badge: "Популярный", badgeColor: "bg-emerald-100 text-emerald-700" },
   { id: "pro", label: "Профи", cpu: 4, ram: 4096, disk: 80, badge: null, badgeColor: "" },
   { id: "business", label: "Бизнес", cpu: 8, ram: 8192, disk: 160, badge: null, badgeColor: "" },
-  { id: "custom", label: "Своя конфиг", cpu: 0, ram: 0, disk: 0, badge: "Гибко", badgeColor: "bg-amber-100 text-amber-700" },
+  { id: "custom", label: "Кастом", cpu: 0, ram: 0, disk: 0, badge: "Гибко", badgeColor: "bg-amber-100 text-amber-700" },
 ];
 
 function calcPrice(cpu: number, ram: number, disk: number) {

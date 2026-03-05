@@ -9,6 +9,7 @@ import ServerDetail from "./pages/ServerDetail";
 import TopUp from "./pages/TopUp";
 import Admin from "./pages/Admin";
 import Networks from "./pages/Networks";
+import AiAgentWidget from "./components/AiAgentWidget";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <AiAgentWidget />
     </BrowserRouter>
   );
 }

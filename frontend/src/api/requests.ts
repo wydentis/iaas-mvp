@@ -6,7 +6,6 @@ import { setCookie, getCookie, removeCookie } from "../utils/cookies";
 // In dev, Vite proxies /auth /user /vps /nodes → backend (no CORS needed).
 // In production, requests go directly to the backend origin.
 const BASE_URL = "/api";
-const WS_BASE  = "api";
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -15,7 +14,8 @@ export const api = axios.create({
 
 export function buildWsUrl(path: string) {
   if (!path.startsWith("/")) path = "/" + path;
-  return `${WS_BASE}${path}`;
+  const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${wsProto}//${window.location.host}${BASE_URL}${path}`;
 }
 
 // ── Request interceptor: inject Authorization header ─────────────────────────
