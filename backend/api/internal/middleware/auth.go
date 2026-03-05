@@ -11,13 +11,17 @@ import (
 
 func AuthMiddleware(next http.HandlerFunc, secret string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var tokenString string
 		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
+		if authHeader != "" {
+			tokenString = strings.TrimPrefix(authHeader, "Bearer ")
+		} else if t := r.URL.Query().Get("token"); t != "" {
+			// Fallback to query parameter for WebSocket connections
+			tokenString = t
+		} else {
 			json.Error(w, http.StatusUnauthorized, "token is required")
 			return
 		}
-
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		claims, err := auth.ValidateToken(tokenString, secret, "access")
 		if err != nil {

@@ -12,8 +12,7 @@ import (
 )
 
 type RabbitMQService struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
+	conn *amqp.Connection
 }
 
 func NewRabbitMQService(url string) (*RabbitMQService, error) {
@@ -22,22 +21,10 @@ func NewRabbitMQService(url string) (*RabbitMQService, error) {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
 
-	ch, err := conn.Channel()
-	if err != nil {
-		conn.Close()
-		return nil, fmt.Errorf("failed to open channel: %w", err)
-	}
-
-	return &RabbitMQService{
-		conn:    conn,
-		channel: ch,
-	}, nil
+	return &RabbitMQService{conn: conn}, nil
 }
 
 func (s *RabbitMQService) Close() error {
-	if s.channel != nil {
-		s.channel.Close()
-	}
 	if s.conn != nil {
 		return s.conn.Close()
 	}
@@ -46,8 +33,15 @@ func (s *RabbitMQService) Close() error {
 
 // RPC call to any queue with timeout
 func (s *RabbitMQService) CallRPC(ctx context.Context, queueName string, request interface{}, timeout time.Duration) ([]byte, error) {
+	// Create a dedicated channel per call to avoid concurrent channel access
+	ch, err := s.conn.Channel()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open channel: %w", err)
+	}
+	defer ch.Close()
+
 	// Create temporary exclusive queue for replies
-	q, err := s.channel.QueueDeclare(
+	q, err := ch.QueueDeclare(
 		"",    // name (empty = random)
 		false, // durable
 		true,  // auto-delete
@@ -60,7 +54,7 @@ func (s *RabbitMQService) CallRPC(ctx context.Context, queueName string, request
 	}
 
 	// Start consuming from reply queue
-	msgs, err := s.channel.Consume(
+	msgs, err := ch.Consume(
 		q.Name, // queue
 		"",     // consumer
 		true,   // auto-ack
@@ -87,7 +81,7 @@ func (s *RabbitMQService) CallRPC(ctx context.Context, queueName string, request
 	defer cancel()
 
 	// Publish request
-	err = s.channel.PublishWithContext(
+	err = ch.PublishWithContext(
 		ctx,
 		"",        // exchange
 		queueName, // routing key

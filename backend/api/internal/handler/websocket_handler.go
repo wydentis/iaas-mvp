@@ -3,7 +3,6 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -101,7 +100,7 @@ func (h *WebSocketHandler) ContainerTerminal(w http.ResponseWriter, r *http.Requ
 
 // WebSocket endpoint for AI chat
 func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(int)
+	userID, ok := r.Context().Value("userID").(string)
 	if !ok {
 		jsonutil.Error(w, http.StatusUnauthorized, "unauthorized")
 		return
@@ -141,7 +140,7 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 
 		// Call RabbitMQ chat service
 		ctx := r.Context()
-		chatResp, err := h.RabbitMQService.GetChatResponse(ctx, strconv.Itoa(userID), msg.Message)
+		chatResp, err := h.RabbitMQService.GetChatResponse(ctx, userID, msg.Message)
 		
 		var response WSChatResponse
 		if err != nil {
