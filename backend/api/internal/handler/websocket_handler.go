@@ -135,9 +135,6 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Reset read deadline for next message
-		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
-
 		// Call RabbitMQ chat service
 		ctx := r.Context()
 		chatResp, err := h.RabbitMQService.GetChatResponse(ctx, userID, msg.Message)
@@ -162,13 +159,13 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Reset write deadline before sending
+		// Reset deadlines before sending response and waiting for next message
 		conn.SetWriteDeadline(time.Now().Add(30 * time.Second))
-		
 		if err := conn.WriteJSON(response); err != nil {
 			slog.Error("failed to write chat response", "err", err)
 			break
 		}
+		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
 	}
 
 	slog.Info("AI chat WebSocket disconnected", "userID", userID)

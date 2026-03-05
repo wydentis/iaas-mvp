@@ -54,14 +54,18 @@ async def process_message(message: aio_pika.IncomingMessage):
             chat_history = await get_formatted_history(user_id, limit=10)
 
             # 2. Gemini Interaction
-            # Using run_in_executor to keep the loop responsive during the API call
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             try:
-                response = await loop.run_in_executor(
-                    None, 
-                    lambda: client.chats.create(model=MODEL_ID, history=chat_history).send_message(user_text)
+                response = await asyncio.wait_for(
+                    loop.run_in_executor(
+                        None,
+                        lambda: client.chats.create(model=MODEL_ID, history=chat_history).send_message(user_text)
+                    ),
+                    timeout=30.0
                 )
                 ai_text = response.text
+            except asyncio.TimeoutError:
+                raise RuntimeError("AI Generation timed out after 30s")
             except Exception as ai_err:
                 # If AI fails, we trigger the specific error reply logic
                 raise RuntimeError(f"AI Generation Failed: {ai_err}")
@@ -99,13 +103,16 @@ async def process_message(message: aio_pika.IncomingMessage):
                     "message": "Failed to generate AI response. History was not updated."
                 }).encode()
 
-                await message.channel.default_exchange.publish(
-                    aio_pika.Message(
-                        body=error_payload,
-                        correlation_id=message.correlation_id,
-                    ),
-                    routing_key=message.reply_to,
-                )
+                try:
+                    await message.channel.default_exchange.publish(
+                        aio_pika.Message(
+                            body=error_payload,
+                            correlation_id=message.correlation_id,
+                        ),
+                        routing_key=message.reply_to,
+                    )
+                except Exception as reply_err:
+                    print(f"Error sending error reply: {reply_err}")
 
 async def main():
     # Setup RabbitMQ Connection
