@@ -40,13 +40,43 @@ export default function SignUp() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const trimmed = {
+      ...form,
+      username: form.username.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      name: form.name.trim(),
+      surname: form.surname.trim(),
+    };
+
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(trimmed.username)) {
+      setError("Логин: 3-30 символов (буквы, цифры, _)");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed.email)) {
+      setError("Некорректный email");
+      return;
+    }
+    if (!/^\+?[0-9\s\-()]{7,20}$/.test(trimmed.phone)) {
+      setError("Некорректный номер телефона");
+      return;
+    }
+    if (!trimmed.name || !trimmed.surname) {
+      setError("Имя и фамилия обязательны");
+      return;
+    }
+    if (form.password.length < 6) {
+      setError("Пароль должен быть не менее 6 символов");
+      return;
+    }
     if (form.password !== form.password_confirm) {
       setError("Пароли не совпадают");
       return;
     }
     setLoading(true);
     try {
-      await signUp(form);
+      await signUp(trimmed);
       navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка регистрации");

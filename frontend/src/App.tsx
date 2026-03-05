@@ -9,6 +9,7 @@ import ServerDetail from "./pages/ServerDetail";
 import TopUp from "./pages/TopUp";
 import Admin from "./pages/Admin";
 import Networks from "./pages/Networks";
+import Marketplace from "./pages/Marketplace";
 import AiAgentWidget from "./components/AiAgentWidget";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/topup" element={<TopUp />} />
         <Route path="/networks" element={<Networks />} />
+        <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

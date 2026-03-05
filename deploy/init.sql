@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS nodes (
     cpu_cores INT NOT NULL,
     ram INT NOT NULL,
     disk_space INT NOT NULL,
+    cpu_price NUMERIC(10,2) NOT NULL DEFAULT 14,
+    ram_price NUMERIC(10,2) NOT NULL DEFAULT 9,
+    disk_price NUMERIC(10,2) NOT NULL DEFAULT 0.6,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -67,3 +70,50 @@ CREATE TABLE IF NOT EXISTS port_mappings (
 
 CREATE INDEX idx_port_mappings_container ON port_mappings(container_id);
 CREATE INDEX idx_port_mappings_host_port ON port_mappings(host_port);
+
+CREATE TABLE IF NOT EXISTS networks (
+    network_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    subnet VARCHAR(18) NOT NULL,
+    gateway VARCHAR(15) NOT NULL,
+    is_public BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_network_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_networks_user ON networks(user_id);
+
+CREATE TABLE IF NOT EXISTS network_attachments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    network_id UUID NOT NULL,
+    container_id UUID NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_attachment_network FOREIGN KEY (network_id) REFERENCES networks(network_id) ON DELETE CASCADE,
+    CONSTRAINT fk_attachment_container FOREIGN KEY (container_id) REFERENCES containers(container_id) ON DELETE CASCADE,
+    CONSTRAINT unique_network_container UNIQUE (network_id, container_id)
+);
+
+CREATE INDEX idx_network_attachments_network ON network_attachments(network_id);
+CREATE INDEX idx_network_attachments_container ON network_attachments(container_id);
+
+CREATE TABLE IF NOT EXISTS snapshots (
+    snapshot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    image VARCHAR(255) NOT NULL,
+    cpu INT NOT NULL,
+    ram INT NOT NULL,
+    disk INT NOT NULL,
+    start_script TEXT NOT NULL DEFAULT '',
+    is_public BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_snapshot_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_snapshots_user ON snapshots(user_id);
+CREATE INDEX idx_snapshots_public ON snapshots(is_public) WHERE is_public = true;

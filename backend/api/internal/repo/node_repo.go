@@ -25,8 +25,8 @@ func NewNodeRepository(stg storage.Storage) *NodeRepository {
 
 func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) error {
 	query := `
-		INSERT INTO nodes (name, ip_address, status, cpu_cores, ram, disk_space)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO nodes (name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING node_id, created_at, updated_at
 	`
 
@@ -37,6 +37,9 @@ func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) erro
 		node.CPUCores,
 		node.RAM,
 		node.DiskSpace,
+		node.CPUPrice,
+		node.RAMPrice,
+		node.DiskPrice,
 	).Scan(&node.ID, &node.CreatedAt, &node.UpdatedAt)
 
 	if err != nil {
@@ -52,7 +55,7 @@ func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) erro
 func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*models.Node, error) {
 	node := &models.Node{}
 	query := `
-		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, created_at, updated_at
+		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price, created_at, updated_at
 		FROM nodes
 		WHERE node_id = $1
 	`
@@ -64,6 +67,9 @@ func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*model
 		&node.CPUCores,
 		&node.RAM,
 		&node.DiskSpace,
+		&node.CPUPrice,
+		&node.RAMPrice,
+		&node.DiskPrice,
 		&node.CreatedAt,
 		&node.UpdatedAt,
 	)
@@ -77,7 +83,7 @@ func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*model
 
 func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) {
 	query := `
-		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, created_at, updated_at
+		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price, created_at, updated_at
 		FROM nodes
 	`
 	rows, err := r.Storage.Pool.Query(ctx, query)
@@ -97,6 +103,9 @@ func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) 
 			&node.CPUCores,
 			&node.RAM,
 			&node.DiskSpace,
+			&node.CPUPrice,
+			&node.RAMPrice,
+			&node.DiskPrice,
 			&node.CreatedAt,
 			&node.UpdatedAt,
 		)
@@ -112,7 +121,7 @@ func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) 
 func (r *NodeRepository) UpdateNode(ctx context.Context, node *models.Node) error {
 	query := `
 		UPDATE nodes
-		SET name = $2, ip_address = $3, status = $4, cpu_cores = $5, ram = $6, disk_space = $7, updated_at = NOW()
+		SET name = $2, ip_address = $3, status = $4, cpu_cores = $5, ram = $6, disk_space = $7, cpu_price = $8, ram_price = $9, disk_price = $10, updated_at = NOW()
 		WHERE node_id = $1
 		RETURNING updated_at
 	`
@@ -124,6 +133,9 @@ func (r *NodeRepository) UpdateNode(ctx context.Context, node *models.Node) erro
 		node.CPUCores,
 		node.RAM,
 		node.DiskSpace,
+		node.CPUPrice,
+		node.RAMPrice,
+		node.DiskPrice,
 	).Scan(&node.UpdatedAt)
 
 	if err != nil {

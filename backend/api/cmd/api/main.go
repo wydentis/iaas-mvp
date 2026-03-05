@@ -53,6 +53,14 @@ func main() {
 	portMappingService := service.NewPortMappingService(portMappingRepo, containerRepo, nodeManager)
 	portMappingHandler := handler.NewPortMappingHandler(portMappingService)
 
+	networkRepo := repo.NewNetworkRepository(*db)
+	networkService := service.NewNetworkService(networkRepo)
+	networkHandler := handler.NewNetworkHandler(networkService)
+
+	snapshotRepo := repo.NewSnapshotRepository(*db)
+	snapshotService := service.NewSnapshotService(snapshotRepo, *containerRepo)
+	snapshotHandler := handler.NewSnapshotHandler(snapshotService)
+
 	rabbitmqService, err := service.NewRabbitMQService(cfg.RabbitMQURL)
 	if err != nil {
 		slog.Error("failed to connect to RabbitMQ", "err", err)
@@ -95,6 +103,7 @@ func main() {
 
 	// public nodes endpoint (no auth)
 	mux.HandleFunc("GET /nodes", nodeHandler.ListPublicNodes)
+	mux.HandleFunc("GET /networks/public", networkHandler.ListPublicNetworks)
 
 	// container
 	mux.HandleFunc("GET /vps", middleware.AuthMiddleware(containerHandler.ListContainers, cfg.JWTSecret))
@@ -118,6 +127,24 @@ func main() {
 	mux.HandleFunc("GET /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.GetPortMappings, cfg.JWTSecret))
 	mux.HandleFunc("PUT /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.UpdatePortMapping, cfg.JWTSecret))
 	mux.HandleFunc("DELETE /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.DeletePortMapping, cfg.JWTSecret))
+
+	// networks
+	mux.HandleFunc("GET /networks", middleware.AuthMiddleware(networkHandler.ListNetworks, cfg.JWTSecret))
+	mux.HandleFunc("POST /networks", middleware.AuthMiddleware(networkHandler.CreateNetwork, cfg.JWTSecret))
+	mux.HandleFunc("GET /networks/{id}", middleware.AuthMiddleware(networkHandler.GetNetwork, cfg.JWTSecret))
+	mux.HandleFunc("PUT /networks/{id}", middleware.AuthMiddleware(networkHandler.UpdateNetwork, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /networks/{id}", middleware.AuthMiddleware(networkHandler.DeleteNetwork, cfg.JWTSecret))
+	mux.HandleFunc("GET /networks/{id}/containers", middleware.AuthMiddleware(networkHandler.ListAttachments, cfg.JWTSecret))
+	mux.HandleFunc("POST /networks/{id}/containers", middleware.AuthMiddleware(networkHandler.AttachContainer, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /networks/{id}/containers/{container_id}", middleware.AuthMiddleware(networkHandler.DetachContainer, cfg.JWTSecret))
+	mux.HandleFunc("GET /vps/{id}/networks", middleware.AuthMiddleware(networkHandler.ListContainerNetworks, cfg.JWTSecret))
+
+	// snapshots / marketplace
+	mux.HandleFunc("GET /snapshots", snapshotHandler.ListPublic)
+	mux.HandleFunc("GET /snapshots/my", middleware.AuthMiddleware(snapshotHandler.ListMy, cfg.JWTSecret))
+	mux.HandleFunc("GET /snapshots/{id}", snapshotHandler.Get)
+	mux.HandleFunc("POST /snapshots", middleware.AuthMiddleware(snapshotHandler.Create, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /snapshots/{id}", middleware.AuthMiddleware(snapshotHandler.Delete, cfg.JWTSecret))
 
 	// AI endpoints
 	mux.HandleFunc("POST /ai/hardware-recommendation", middleware.AuthMiddleware(aiHandler.GetHardwareRecommendation, cfg.JWTSecret))

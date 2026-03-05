@@ -12,10 +12,10 @@ import { getCookie } from "../utils/cookies";
 import AnimatedBackground from "../components/AnimatedBackground";
 import Header from "../components/Header";
 
-// ── Pricing (BYN/month estimates for Belarus market) ──────────────────────────
-const CPU_PRICE = 14;
-const RAM_PRICE = 9;
-const DISK_PRICE = 0.6;
+// ── Pricing defaults (BYN/month, used when node has no pricing data) ──────────
+const DEFAULT_CPU_PRICE = 14;
+const DEFAULT_RAM_PRICE = 9;
+const DEFAULT_DISK_PRICE = 0.6;
 
 // ── OS images ─────────────────────────────────────────────────────────────────
 const IMAGES = [
@@ -38,8 +38,8 @@ const PLANS = [
   { id: "custom", label: "Кастом", cpu: 0, ram: 0, disk: 0, badge: "Гибко", badgeColor: "bg-amber-100 text-amber-700" },
 ];
 
-function calcPrice(cpu: number, ram: number, disk: number) {
-  return Number((cpu * CPU_PRICE + Math.round((ram / 1024) * RAM_PRICE) + disk * DISK_PRICE).toFixed(1));
+function calcPrice(cpu: number, ram: number, disk: number, cpuP: number, ramP: number, diskP: number) {
+  return Number((cpu * cpuP + Math.round((ram / 1024) * ramP) + disk * diskP).toFixed(1));
 }
 
 function formatBYN(value: number) {
@@ -234,10 +234,15 @@ export default function NewServer() {
     );
   }
 
-  const price = calcPrice(cpu, ram, disk);
-  const cpuCost = Number((cpu * CPU_PRICE).toFixed(1));
-  const ramCost = Math.round((ram / 1024) * RAM_PRICE);
-  const diskCost = Number((disk * DISK_PRICE).toFixed(1));
+  const selectedNode = nodes.find((n) => n.node_id === nodeId);
+  const cpuPrice = selectedNode?.cpu_price ?? DEFAULT_CPU_PRICE;
+  const ramPrice = selectedNode?.ram_price ?? DEFAULT_RAM_PRICE;
+  const diskPrice = selectedNode?.disk_price ?? DEFAULT_DISK_PRICE;
+
+  const price = calcPrice(cpu, ram, disk, cpuPrice, ramPrice, diskPrice);
+  const cpuCost = Number((cpu * cpuPrice).toFixed(1));
+  const ramCost = Math.round((ram / 1024) * ramPrice);
+  const diskCost = Number((disk * diskPrice).toFixed(1));
   const scriptPlaceholder = getSshScriptPlaceholder(image);
 
   async function handleAskAI(e: React.FormEvent) {
@@ -448,7 +453,7 @@ export default function NewServer() {
                 <StepHeader step="2" title="Готовые тарифы" />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
                   {PLANS.map((p) => {
-                    const pp = calcPrice(p.cpu, p.ram, p.disk);
+                    const pp = calcPrice(p.cpu, p.ram, p.disk, cpuPrice, ramPrice, diskPrice);
                     return (
                       <SelectCard key={p.id} selected={planId === p.id} onClick={() => selectPlan(p.id)}>
                         {p.badge && (
@@ -610,15 +615,15 @@ export default function NewServer() {
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between text-gray-400">
-                    <span>CPU ({cpu} × {CPU_PRICE} BYN)</span>
+                    <span>CPU ({cpu} × {cpuPrice} BYN)</span>
                     <span>{formatBYN(cpuCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>RAM ({formatRAM(ram)} × {RAM_PRICE} BYN/ГБ)</span>
+                    <span>RAM ({formatRAM(ram)} × {ramPrice} BYN/ГБ)</span>
                     <span>{formatBYN(ramCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>SSD ({disk} × {DISK_PRICE} BYN)</span>
+                    <span>SSD ({disk} × {diskPrice} BYN)</span>
                     <span>{formatBYN(diskCost)} BYN</span>
                   </div>
                   <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-gray-900">

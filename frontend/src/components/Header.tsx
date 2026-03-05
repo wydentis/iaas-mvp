@@ -60,6 +60,12 @@ export default function Header() {
             >
               Новый сервер
             </Link>
+            <Link
+              to="/marketplace"
+              className="rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
+            >
+              Маркетплейс
+            </Link>
           </nav>
         )}
       </div>
@@ -146,6 +152,12 @@ export default function Header() {
             className="whitespace-nowrap rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
           >
             Новый сервер
+          </Link>
+          <Link
+            to="/marketplace"
+            className="whitespace-nowrap rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
+          >
+            Маркетплейс
           </Link>
           {isAdmin && (
             <Link

@@ -29,6 +29,10 @@ export default function TopUp() {
       setError("Введите сумму больше 0");
       return;
     }
+    if (num > 1000000) {
+      setError("Максимальная сумма пополнения — 1 000 000 BYN");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -98,6 +102,7 @@ export default function TopUp() {
                     <input
                       type="number"
                       min={1}
+                      max={1000000}
                       value={amount}
                       onChange={(e) => {
                         setAmount(e.target.value);

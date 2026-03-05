@@ -4,12 +4,20 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/wydentis/iaas-mvp/api/internal/auth"
 	"github.com/wydentis/iaas-mvp/api/internal/json"
 	"github.com/wydentis/iaas-mvp/api/internal/models"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
 	"github.com/wydentis/iaas-mvp/api/internal/service"
+)
+
+var (
+	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	usernameRegex = regexp.MustCompile(`^[a-zA-Z0-9_]{3,30}$`)
+	phoneRegex    = regexp.MustCompile(`^\+?[0-9\s\-()]{7,20}$`)
 )
 
 type UserHandler struct {
@@ -29,6 +37,33 @@ func (h *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	if req.Password != req.PasswordConfirm {
 		json.Error(w, http.StatusBadRequest, "passwords do not match")
+		return
+	}
+
+	req.Username = strings.TrimSpace(req.Username)
+	req.Email = strings.TrimSpace(req.Email)
+	req.Phone = strings.TrimSpace(req.Phone)
+	req.Name = strings.TrimSpace(req.Name)
+	req.Surname = strings.TrimSpace(req.Surname)
+
+	if !usernameRegex.MatchString(req.Username) {
+		json.Error(w, http.StatusBadRequest, "username must be 3-30 characters (letters, digits, underscore)")
+		return
+	}
+	if !emailRegex.MatchString(req.Email) {
+		json.Error(w, http.StatusBadRequest, "invalid email format")
+		return
+	}
+	if !phoneRegex.MatchString(req.Phone) {
+		json.Error(w, http.StatusBadRequest, "invalid phone number")
+		return
+	}
+	if len(req.Password) < 6 {
+		json.Error(w, http.StatusBadRequest, "password must be at least 6 characters")
+		return
+	}
+	if req.Name == "" || req.Surname == "" {
+		json.Error(w, http.StatusBadRequest, "name and surname are required")
 		return
 	}
 
@@ -200,6 +235,15 @@ func (h *UserHandler) ChangeBalance(w http.ResponseWriter, r *http.Request) {
 	req, err := json.Decode[models.UserBalance](r)
 	if err != nil {
 		json.Error(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Amount <= 0 {
+		json.Error(w, http.StatusBadRequest, "amount must be greater than 0")
+		return
+	}
+	if req.Amount > 1000000 {
+		json.Error(w, http.StatusBadRequest, "amount must not exceed 1 000 000")
 		return
 	}
 

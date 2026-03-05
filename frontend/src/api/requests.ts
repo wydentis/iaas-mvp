@@ -233,6 +233,9 @@ export interface Node {
   cpu_cores: number;
   ram: number;
   disk_space: number;
+  cpu_price: number;
+  ram_price: number;
+  disk_price: number;
 }
 
 export interface PortMapping {
@@ -490,6 +493,7 @@ export interface Network {
   description?: string;
   subnet: string;
   gateway: string;
+  is_public: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -506,6 +510,65 @@ export interface HardwareRecommendation {
   basic_minimum: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
   optimal: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
   luxury_maximum: { cpu_cores: number; ram_gb: number; disk_size_gb: number; reasoning: string };
+}
+
+export interface Snapshot {
+  snapshot_id: string;
+  user_id: string;
+  name: string;
+  description: string;
+  image: string;
+  cpu: number;
+  ram: number;
+  disk: number;
+  start_script: string;
+  is_public: boolean;
+  created_at: string;
+}
+
+// ── Snapshots / Marketplace ───────────────────────────────────────────────────
+export async function listPublicSnapshots(): Promise<Snapshot[]> {
+  try {
+    const { data } = await api.get<Snapshot[]>("/snapshots");
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function getSnapshot(id: string): Promise<Snapshot> {
+  try {
+    const { data } = await api.get<Snapshot>(`/snapshots/${id}`);
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function listMySnapshots(): Promise<Snapshot[]> {
+  try {
+    const { data } = await api.get<Snapshot[]>("/snapshots/my", { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function createSnapshot(payload: { container_id: string; name: string; description: string; is_public: boolean }): Promise<Snapshot> {
+  try {
+    const { data } = await api.post<Snapshot>("/snapshots", payload, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function deleteSnapshot(id: string): Promise<void> {
+  try {
+    await api.delete(`/snapshots/${id}`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
 }
 
 // ── Admin requests ────────────────────────────────────────────────────────────

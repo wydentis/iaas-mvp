@@ -24,6 +24,9 @@ func (s *NodeService) CreateNode(ctx context.Context, req models.CreateNodeReque
 		CPUCores:  req.CPUCores,
 		RAM:       req.RAM,
 		DiskSpace: req.DiskSpace,
+		CPUPrice:  req.CPUPrice,
+		RAMPrice:  req.RAMPrice,
+		DiskPrice: req.DiskPrice,
 	}
 
 	if err := s.Repo.CreateNode(ctx, node); err != nil {
@@ -54,6 +57,9 @@ func (s *NodeService) UpdateNode(ctx context.Context, nodeID string, req models.
 		CPUCores:  req.CPUCores,
 		RAM:       req.RAM,
 		DiskSpace: req.DiskSpace,
+		CPUPrice:  req.CPUPrice,
+		RAMPrice:  req.RAMPrice,
+		DiskPrice: req.DiskPrice,
 	}
 
 	if err := s.Repo.UpdateNode(ctx, node); err != nil {
