@@ -118,43 +118,56 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 	const pongWait = 60 * time.Second
 	const pingInterval = 25 * time.Second
 
+	// Pong handler resets the read deadline each time a pong is received
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error {
 		conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 
-	// Ping goroutine to keep connection alive through proxies
+	// Ping goroutine — WriteControl is safe to call concurrently with writes
 	go func() {
 		ticker := time.NewTicker(pingInterval)
 		defer ticker.Stop()
 		for range ticker.C {
-			conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			if err := conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(10*time.Second)); err != nil {
 				return
 			}
 		}
 	}()
 
+	// Reader goroutine — the only place conn.Read* is called
+	type incoming struct {
+		text string
+		err  error
+	}
+	msgCh := make(chan incoming, 1)
+	go func() {
+		for {
+			var msg WSChatMessage
+			if err := conn.ReadJSON(&msg); err != nil {
+				msgCh <- incoming{err: err}
+				return
+			}
+			msgCh <- incoming{text: msg.Message}
+		}
+	}()
+
 	for {
-		var msg WSChatMessage
-		err := conn.ReadJSON(&msg)
-		if err != nil {
-			slog.Error("failed to read chat message", "err", err)
+		in := <-msgCh
+		if in.err != nil {
+			slog.Error("failed to read chat message", "err", in.err)
 			break
 		}
 
-		if msg.Message == "" {
-			conn.WriteJSON(WSChatResponse{
-				Status: "error",
-				Error:  "message is required",
-			})
+		if in.text == "" {
+			conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			conn.WriteJSON(WSChatResponse{Status: "error", Error: "message is required"})
 			continue
 		}
 
-		// Call RabbitMQ chat service
-		ctx := r.Context()
-		chatResp, err := h.RabbitMQService.GetChatResponse(ctx, userID, msg.Message)
+		// RPC call — no read deadline interference since reading is in its own goroutine
+		chatResp, err := h.RabbitMQService.GetChatResponse(r.Context(), userID, in.text)
 
 		var response WSChatResponse
 		if err != nil {
@@ -181,7 +194,6 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 			slog.Error("failed to write chat response", "err", err)
 			break
 		}
-		conn.SetReadDeadline(time.Now().Add(pongWait))
 	}
 
 	slog.Info("AI chat WebSocket disconnected", "userID", userID)

@@ -174,7 +174,7 @@ func (s *RabbitMQService) GetChatResponse(ctx context.Context, userID, message s
 		Message: message,
 	}
 	
-	respBody, err := s.CallRPC(ctx, "chat_requests", req, 60*time.Second)
+	respBody, err := s.CallRPC(ctx, "chat_requests", req, 120*time.Second)
 	if err != nil {
 		return nil, err
 	}
