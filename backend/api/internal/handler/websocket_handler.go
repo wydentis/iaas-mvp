@@ -115,9 +115,26 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("AI chat WebSocket connected", "userID", userID)
 
-	// Set read/write deadlines
-	conn.SetReadDeadline(time.Now().Add(120 * time.Second))
-	conn.SetWriteDeadline(time.Now().Add(120 * time.Second))
+	const pongWait = 60 * time.Second
+	const pingInterval = 25 * time.Second
+
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
+	// Ping goroutine to keep connection alive through proxies
+	go func() {
+		ticker := time.NewTicker(pingInterval)
+		defer ticker.Stop()
+		for range ticker.C {
+			conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				return
+			}
+		}
+	}()
 
 	for {
 		var msg WSChatMessage
@@ -138,7 +155,7 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 		// Call RabbitMQ chat service
 		ctx := r.Context()
 		chatResp, err := h.RabbitMQService.GetChatResponse(ctx, userID, msg.Message)
-		
+
 		var response WSChatResponse
 		if err != nil {
 			response = WSChatResponse{
@@ -159,13 +176,12 @@ func (h *WebSocketHandler) AIChat(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// Reset deadlines before sending response and waiting for next message
 		conn.SetWriteDeadline(time.Now().Add(30 * time.Second))
 		if err := conn.WriteJSON(response); err != nil {
 			slog.Error("failed to write chat response", "err", err)
 			break
 		}
-		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
+		conn.SetReadDeadline(time.Now().Add(pongWait))
 	}
 
 	slog.Info("AI chat WebSocket disconnected", "userID", userID)
