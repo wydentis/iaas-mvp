@@ -24,6 +24,9 @@ func (s *NodeService) CreateNode(ctx context.Context, req models.CreateNodeReque
 		CPUCores:  req.CPUCores,
 		RAM:       req.RAM,
 		DiskSpace: req.DiskSpace,
+		TotalVCPU: req.TotalVCPU,
+		TotalRAM:  req.TotalRAM,
+		TotalDisk: req.TotalDisk,
 		CPUPrice:  req.CPUPrice,
 		RAMPrice:  req.RAMPrice,
 		DiskPrice: req.DiskPrice,
@@ -57,6 +60,9 @@ func (s *NodeService) UpdateNode(ctx context.Context, nodeID string, req models.
 		CPUCores:  req.CPUCores,
 		RAM:       req.RAM,
 		DiskSpace: req.DiskSpace,
+		TotalVCPU: req.TotalVCPU,
+		TotalRAM:  req.TotalRAM,
+		TotalDisk: req.TotalDisk,
 		CPUPrice:  req.CPUPrice,
 		RAMPrice:  req.RAMPrice,
 		DiskPrice: req.DiskPrice,
@@ -71,4 +77,32 @@ func (s *NodeService) UpdateNode(ctx context.Context, nodeID string, req models.
 
 func (s *NodeService) DeleteNode(ctx context.Context, nodeID string) error {
 	return s.Repo.DeleteNode(ctx, nodeID)
+}
+
+// ListNodesWithResources returns nodes enriched with usage info and dynamic prices.
+func (s *NodeService) ListNodesWithResources(ctx context.Context) ([]*models.NodeWithResources, error) {
+	nodes, err := s.Repo.ListNodesWithResources(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, n := range nodes {
+		cpuRatio := safeRatio(n.UsedCPU, n.TotalVCPU)
+		ramRatio := safeRatio(n.UsedRAM, n.TotalRAM)
+		diskRatio := safeRatio(n.UsedDisk, n.TotalDisk)
+		n.DynCPUPrice = n.CPUPrice * (1 + cpuRatio)
+		n.DynRAMPrice = n.RAMPrice * (1 + ramRatio)
+		n.DynDiskPrice = n.DiskPrice * (1 + diskRatio)
+	}
+	return nodes, nil
+}
+
+func safeRatio(used, total int) float64 {
+	if total <= 0 {
+		return 0
+	}
+	r := float64(used) / float64(total)
+	if r > 1 {
+		r = 1
+	}
+	return r
 }

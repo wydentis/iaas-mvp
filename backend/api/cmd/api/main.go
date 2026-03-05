@@ -78,7 +78,7 @@ func main() {
 	defer nodeManager.Close()
 
 	containerRepo := repo.NewContainerRepository(*db)
-	containerService := service.NewContainerService(*containerRepo, nodeManager)
+	containerService := service.NewContainerService(*containerRepo, nodeManager, nodeRepo, userRepo)
 	containerHandler := handler.NewContainerHandler(*containerService)
 
 	nodeService := service.NewNodeService(nodeRepo, nodeManager)
@@ -95,6 +95,10 @@ func main() {
 	snapshotRepo := repo.NewSnapshotRepository(*db)
 	snapshotService := service.NewSnapshotService(snapshotRepo, *containerRepo)
 	snapshotHandler := handler.NewSnapshotHandler(snapshotService)
+
+	publicIPRepo := repo.NewPublicIPRepository(*db)
+	publicIPService := service.NewPublicIPService(publicIPRepo, containerRepo, userRepo)
+	publicIPHandler := handler.NewPublicIPHandler(publicIPService)
 
 	rabbitmqService, err := service.NewRabbitMQService(cfg.RabbitMQURL)
 	if err != nil {
@@ -144,6 +148,7 @@ func main() {
 
 	// public nodes endpoint (no auth)
 	mux.HandleFunc("GET /nodes", nodeHandler.ListPublicNodes)
+	mux.HandleFunc("GET /nodes/{id}/public-ips", publicIPHandler.ListFreeByNode)
 	mux.HandleFunc("GET /networks/public", networkHandler.ListPublicNetworks)
 
 	// container
@@ -168,6 +173,16 @@ func main() {
 	mux.HandleFunc("GET /vps/{id}/ports", middleware.AuthMiddleware(portMappingHandler.GetPortMappings, cfg.JWTSecret))
 	mux.HandleFunc("PUT /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.UpdatePortMapping, cfg.JWTSecret))
 	mux.HandleFunc("DELETE /vps/{id}/ports/{mapping_id}", middleware.AuthMiddleware(portMappingHandler.DeletePortMapping, cfg.JWTSecret))
+
+	// public IPs
+	mux.HandleFunc("POST /vps/{id}/public-ip", middleware.AuthMiddleware(publicIPHandler.Assign, cfg.JWTSecret))
+	mux.HandleFunc("DELETE /vps/{id}/public-ip", middleware.AuthMiddleware(publicIPHandler.Release, cfg.JWTSecret))
+	mux.HandleFunc("GET /vps/{id}/public-ip", middleware.AuthMiddleware(publicIPHandler.GetByContainer, cfg.JWTSecret))
+
+	// admin public IPs
+	mux.HandleFunc("POST /admin/public-ips", middleware.AuthMiddleware(middleware.AdminMiddleware(publicIPHandler.AdminCreate), cfg.JWTSecret))
+	mux.HandleFunc("DELETE /admin/public-ips/{id}", middleware.AuthMiddleware(middleware.AdminMiddleware(publicIPHandler.AdminDelete), cfg.JWTSecret))
+	mux.HandleFunc("GET /admin/nodes/{id}/public-ips", middleware.AuthMiddleware(middleware.AdminMiddleware(publicIPHandler.AdminListByNode), cfg.JWTSecret))
 
 	// networks
 	mux.HandleFunc("GET /networks", middleware.AuthMiddleware(networkHandler.ListNetworks, cfg.JWTSecret))

@@ -33,6 +33,15 @@ func (s *PortMappingService) CreatePortMapping(ctx context.Context, userID, role
 		return nil, ErrUnauthorized
 	}
 
+	// Enforce max 10 port mappings per container
+	existing, err := s.PortRepo.ListPortMappingsByContainer(ctx, containerID)
+	if err != nil {
+		return nil, err
+	}
+	if len(existing) >= 10 {
+		return nil, errors.New("maximum 10 port mappings per container")
+	}
+
 	if req.Protocol == "" {
 		req.Protocol = "tcp"
 	}

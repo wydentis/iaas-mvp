@@ -113,9 +113,9 @@ func (h *NodeHandler) DeleteNode(w http.ResponseWriter, r *http.Request) {
 	json.Encode(w, http.StatusOK, "")
 }
 
-// Public endpoint - no auth required
+// Public endpoint - no auth required, returns resource usage + dynamic prices
 func (h *NodeHandler) ListPublicNodes(w http.ResponseWriter, r *http.Request) {
-	nodes, err := h.Service.ListNodes(r.Context())
+	nodes, err := h.Service.ListNodesWithResources(r.Context())
 	if err != nil {
 		slog.Error("failed to list nodes", "err", err)
 		json.Error(w, http.StatusInternalServerError, err.Error())

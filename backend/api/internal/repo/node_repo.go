@@ -25,8 +25,8 @@ func NewNodeRepository(stg storage.Storage) *NodeRepository {
 
 func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) error {
 	query := `
-		INSERT INTO nodes (name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO nodes (name, ip_address, status, cpu_cores, ram, disk_space, total_vcpu, total_ram_mb, total_disk_gb, cpu_price, ram_price, disk_price)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING node_id, created_at, updated_at
 	`
 
@@ -37,6 +37,9 @@ func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) erro
 		node.CPUCores,
 		node.RAM,
 		node.DiskSpace,
+		node.TotalVCPU,
+		node.TotalRAM,
+		node.TotalDisk,
 		node.CPUPrice,
 		node.RAMPrice,
 		node.DiskPrice,
@@ -55,7 +58,7 @@ func (r *NodeRepository) CreateNode(ctx context.Context, node *models.Node) erro
 func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*models.Node, error) {
 	node := &models.Node{}
 	query := `
-		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price, created_at, updated_at
+		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, total_vcpu, total_ram_mb, total_disk_gb, cpu_price, ram_price, disk_price, created_at, updated_at
 		FROM nodes
 		WHERE node_id = $1
 	`
@@ -67,6 +70,9 @@ func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*model
 		&node.CPUCores,
 		&node.RAM,
 		&node.DiskSpace,
+		&node.TotalVCPU,
+		&node.TotalRAM,
+		&node.TotalDisk,
 		&node.CPUPrice,
 		&node.RAMPrice,
 		&node.DiskPrice,
@@ -83,7 +89,7 @@ func (r *NodeRepository) GetNodeByID(ctx context.Context, nodeID string) (*model
 
 func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) {
 	query := `
-		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, cpu_price, ram_price, disk_price, created_at, updated_at
+		SELECT node_id, name, ip_address, status, cpu_cores, ram, disk_space, total_vcpu, total_ram_mb, total_disk_gb, cpu_price, ram_price, disk_price, created_at, updated_at
 		FROM nodes
 	`
 	rows, err := r.Storage.Pool.Query(ctx, query)
@@ -103,6 +109,9 @@ func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) 
 			&node.CPUCores,
 			&node.RAM,
 			&node.DiskSpace,
+			&node.TotalVCPU,
+			&node.TotalRAM,
+			&node.TotalDisk,
 			&node.CPUPrice,
 			&node.RAMPrice,
 			&node.DiskPrice,
@@ -121,7 +130,7 @@ func (r *NodeRepository) ListNodes(ctx context.Context) ([]*models.Node, error) 
 func (r *NodeRepository) UpdateNode(ctx context.Context, node *models.Node) error {
 	query := `
 		UPDATE nodes
-		SET name = $2, ip_address = $3, status = $4, cpu_cores = $5, ram = $6, disk_space = $7, cpu_price = $8, ram_price = $9, disk_price = $10, updated_at = NOW()
+		SET name = $2, ip_address = $3, status = $4, cpu_cores = $5, ram = $6, disk_space = $7, total_vcpu = $8, total_ram_mb = $9, total_disk_gb = $10, cpu_price = $11, ram_price = $12, disk_price = $13, updated_at = NOW()
 		WHERE node_id = $1
 		RETURNING updated_at
 	`
@@ -133,6 +142,9 @@ func (r *NodeRepository) UpdateNode(ctx context.Context, node *models.Node) erro
 		node.CPUCores,
 		node.RAM,
 		node.DiskSpace,
+		node.TotalVCPU,
+		node.TotalRAM,
+		node.TotalDisk,
 		node.CPUPrice,
 		node.RAMPrice,
 		node.DiskPrice,
@@ -163,4 +175,57 @@ func (r *NodeRepository) DeleteNode(ctx context.Context, nodeID string) error {
 	}
 
 	return nil
+}
+
+// ListNodesWithResources returns all nodes enriched with used resources and free public IP count.
+func (r *NodeRepository) ListNodesWithResources(ctx context.Context) ([]*models.NodeWithResources, error) {
+	query := `
+		SELECT
+			n.node_id, n.name, n.ip_address, n.status,
+			n.cpu_cores, n.ram, n.disk_space,
+			n.total_vcpu, n.total_ram_mb, n.total_disk_gb,
+			n.cpu_price, n.ram_price, n.disk_price,
+			n.created_at, n.updated_at,
+			COALESCE(u.used_cpu, 0),
+			COALESCE(u.used_ram, 0),
+			COALESCE(u.used_disk, 0),
+			COALESCE(pip.free_ips, 0)
+		FROM nodes n
+		LEFT JOIN (
+			SELECT node_id, SUM(cpu)::int AS used_cpu, SUM(ram)::int AS used_ram, SUM(disk)::int AS used_disk
+			FROM containers
+			GROUP BY node_id
+		) u ON u.node_id = n.node_id
+		LEFT JOIN (
+			SELECT node_id, COUNT(*)::int AS free_ips
+			FROM public_ips
+			WHERE container_id IS NULL
+			GROUP BY node_id
+		) pip ON pip.node_id = n.node_id
+	`
+	rows, err := r.Storage.Pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []*models.NodeWithResources
+	for rows.Next() {
+		nwr := &models.NodeWithResources{}
+		err := rows.Scan(
+			&nwr.ID, &nwr.Name, &nwr.IPAddress, &nwr.Status,
+			&nwr.CPUCores, &nwr.RAM, &nwr.DiskSpace,
+			&nwr.TotalVCPU, &nwr.TotalRAM, &nwr.TotalDisk,
+			&nwr.CPUPrice, &nwr.RAMPrice, &nwr.DiskPrice,
+			&nwr.CreatedAt, &nwr.UpdatedAt,
+			&nwr.UsedCPU, &nwr.UsedRAM, &nwr.UsedDisk,
+			&nwr.PublicIPsFree,
+		)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, nwr)
+	}
+
+	return result, nil
 }

@@ -6,8 +6,10 @@ import {
   listNetworks,
   attachContainerToNetwork,
   getHardwareRecommendation,
+  listFreePublicIPs,
+  assignPublicIP,
 } from "../api/requests";
-import type { Node, Network, HardwareRecommendation } from "../api/requests";
+import type { Node, Network, HardwareRecommendation, PublicIP } from "../api/requests";
 import { getCookie } from "../utils/cookies";
 import AnimatedBackground from "../components/AnimatedBackground";
 import Header from "../components/Header";
@@ -170,6 +172,23 @@ function ConfigSlider({
   );
 }
 
+// ── Resource Bar ──────────────────────────────────────────────────────────────
+function ResourceBar({ label, used, total, unit }: { label: string; used: number; total: number; unit: string }) {
+  const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+  const color = pct < 50 ? "bg-emerald-500" : pct < 80 ? "bg-amber-500" : "bg-red-600";
+  return (
+    <div className="space-y-0.5">
+      <div className="flex justify-between text-[10px] text-gray-500">
+        <span>{label}</span>
+        <span>{used}/{total} {unit}</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-gray-200">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function NewServer() {
   const navigate = useNavigate();
@@ -194,6 +213,8 @@ export default function NewServer() {
   const [rec, setRec] = useState<HardwareRecommendation | null>(null);
   const [recLoading, setRecLoading] = useState(false);
   const [recError, setRecError] = useState<string | null>(null);
+  const [publicIPs, setPublicIPs] = useState<PublicIP[]>([]);
+  const [selectedPublicIP, setSelectedPublicIP] = useState<string>("");
 
   useEffect(() => {
     if (!getCookie("access_token")) {
@@ -212,6 +233,12 @@ export default function NewServer() {
         setNetworks([]);
       });
   }, [navigate]);
+
+  // Load public IPs when node changes
+  useEffect(() => {
+    if (!nodeId) { setPublicIPs([]); return; }
+    listFreePublicIPs(nodeId).then(setPublicIPs).catch(() => setPublicIPs([]));
+  }, [nodeId]);
 
   function selectPlan(id: string) {
     setPlanId(id);
@@ -237,11 +264,14 @@ export default function NewServer() {
   }
 
   const selectedNode = nodes.find((n) => n.node_id === nodeId);
-  const cpuPrice = selectedNode?.cpu_price ?? DEFAULT_CPU_PRICE;
-  const ramPrice = selectedNode?.ram_price ?? DEFAULT_RAM_PRICE;
-  const diskPrice = selectedNode?.disk_price ?? DEFAULT_DISK_PRICE;
+  // Use dynamic prices when available, fall back to base prices
+  const cpuPrice = selectedNode?.dyn_cpu_price ?? selectedNode?.cpu_price ?? DEFAULT_CPU_PRICE;
+  const ramPrice = selectedNode?.dyn_ram_price ?? selectedNode?.ram_price ?? DEFAULT_RAM_PRICE;
+  const diskPrice = selectedNode?.dyn_disk_price ?? selectedNode?.disk_price ?? DEFAULT_DISK_PRICE;
+  const selectedPubIP = publicIPs.find((ip) => ip.id === selectedPublicIP);
+  const pubIPCost = selectedPubIP?.price_monthly ?? 0;
 
-  const price = calcPrice(cpu, ram, disk, cpuPrice, ramPrice, diskPrice);
+  const price = calcPrice(cpu, ram, disk, cpuPrice, ramPrice, diskPrice) + pubIPCost;
   const cpuCost = Number((cpu * cpuPrice).toFixed(1));
   const ramCost = Math.round((ram / 1024) * ramPrice);
   const diskCost = Number((disk * diskPrice).toFixed(1));
@@ -305,6 +335,13 @@ export default function NewServer() {
           } catch (err) {
             console.error(err);
           }
+        }
+      }
+      if (selectedPublicIP) {
+        try {
+          await assignPublicIP(c.container_id, selectedPublicIP);
+        } catch (err) {
+          console.error(err);
         }
       }
       const existing = JSON.parse(localStorage.getItem("container_ids") ?? "[]") as string[];
@@ -515,6 +552,16 @@ export default function NewServer() {
                             {n.status}
                           </span>
                         </div>
+                        <div className="mt-3 space-y-1.5">
+                          <ResourceBar label="vCPU" used={n.used_cpu ?? 0} total={n.total_vcpu ?? n.cpu_cores} unit="ядер" />
+                          <ResourceBar label="RAM" used={Math.round((n.used_ram_mb ?? 0) / 1024)} total={Math.round((n.total_ram_mb ?? n.ram) / 1024)} unit="ГБ" />
+                          <ResourceBar label="Диск" used={n.used_disk_gb ?? 0} total={n.total_disk_gb ?? n.disk_space} unit="ГБ" />
+                        </div>
+                        {(n.public_ips_free ?? 0) > 0 && (
+                          <div className="mt-2 text-[10px] font-medium text-emerald-600">
+                            🌐 {n.public_ips_free} публичных IP свободно
+                          </div>
+                        )}
                       </SelectCard>
                     ))}
                   </div>
@@ -542,7 +589,34 @@ export default function NewServer() {
                 )}
               </section>
 
-              {/* ── Sliders Section ── */}
+              <section>
+                <StepHeader step="5.5" title="Публичный IP" optional />
+                {publicIPs.length === 0 ? (
+                  <p className="text-sm text-gray-400">Нет доступных публичных IP для этого узла.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPublicIP("")}
+                      className={`rounded-xl border px-4 py-3 text-left text-sm transition ${!selectedPublicIP ? "border-red-200 bg-red-50 shadow-sm" : "border-gray-200 bg-gray-50 hover:border-red-200 hover:bg-red-50/40"}`}
+                    >
+                      <div className="font-semibold text-gray-900">Без IP</div>
+                      <div className="text-xs text-gray-500">Только порты</div>
+                    </button>
+                    {publicIPs.map((ip) => (
+                      <button
+                        key={ip.id}
+                        type="button"
+                        onClick={() => setSelectedPublicIP(ip.id)}
+                        className={`rounded-xl border px-4 py-3 text-left text-sm transition ${selectedPublicIP === ip.id ? "border-red-200 bg-red-50 shadow-sm" : "border-gray-200 bg-gray-50 hover:border-red-200 hover:bg-red-50/40"}`}
+                      >
+                        <div className="font-semibold text-gray-900">{ip.ip_address}</div>
+                        <div className="text-xs text-emerald-600 font-medium">+{ip.price_monthly} BYN/мес</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
               <section id="config-sliders">
                 <StepHeader step="6" title="Конфигурация ресурсов" />
                 <div className="grid gap-5 rounded-2xl bg-gray-50/50 p-6 ring-1 ring-gray-100">
@@ -608,6 +682,7 @@ export default function NewServer() {
                   <SummaryRow icon="🐧" label="ОС" value={IMAGES.find((i) => i.id === image)?.label ?? image} />
                   <SummaryRow icon="📍" label="Регион" value={nodes.find((n) => n.node_id === nodeId)?.name ?? <span className="text-gray-300 italic">не выбран</span>} />
                   <SummaryRow icon="🕸️" label="Сети" value={selectedNetworks.length > 0 ? `${selectedNetworks.length} шт.` : <span className="text-gray-300 italic">не выбраны</span>} />
+                  <SummaryRow icon="🌐" label="Публичный IP" value={selectedPubIP ? selectedPubIP.ip_address : <span className="text-gray-300 italic">нет</span>} />
                   <SummaryRow icon="⚙️" label="CPU" value={`${cpu} ${cpu === 1 ? "ядро" : cpu < 5 ? "ядра" : "ядер"}`} />
                   <SummaryRow icon="🧠" label="RAM" value={formatRAM(ram)} />
                   <SummaryRow icon="💾" label="Диск" value={`${disk} ГБ SSD`} />
@@ -617,21 +692,28 @@ export default function NewServer() {
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between text-gray-400">
-                    <span>CPU ({cpu} × {cpuPrice} BYN)</span>
+                    <span>CPU ({cpu} × {formatBYN(cpuPrice)} BYN)</span>
                     <span>{formatBYN(cpuCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>RAM ({formatRAM(ram)} × {ramPrice} BYN/ГБ)</span>
+                    <span>RAM ({formatRAM(ram)} × {formatBYN(ramPrice)} BYN/ГБ)</span>
                     <span>{formatBYN(ramCost)} BYN</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>SSD ({disk} × {diskPrice} BYN)</span>
+                    <span>SSD ({disk} × {formatBYN(diskPrice)} BYN)</span>
                     <span>{formatBYN(diskCost)} BYN</span>
                   </div>
+                  {pubIPCost > 0 && (
+                    <div className="flex justify-between text-gray-400">
+                      <span>Публичный IP</span>
+                      <span>{formatBYN(pubIPCost)} BYN</span>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t border-gray-200 pt-2 font-bold text-gray-900">
                     <span>Итого / месяц</span>
                     <span className="text-red-700">{formatBYN(price)} BYN</span>
                   </div>
+                  <p className="text-[10px] text-gray-400 italic">Цены зависят от загрузки узла</p>
                 </div>
 
                 {error && (

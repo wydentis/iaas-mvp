@@ -35,6 +35,14 @@ func (h *ContainerHandler) CreateContainer(w http.ResponseWriter, r *http.Reques
 
 	container, err := h.Service.CreateContainer(r.Context(), userID, createReq)
 	if err != nil {
+		if errors.Is(err, service.ErrInsufficientFunds) {
+			json.Error(w, http.StatusPaymentRequired, err.Error())
+			return
+		}
+		if errors.Is(err, service.ErrNodeFull) {
+			json.Error(w, http.StatusConflict, err.Error())
+			return
+		}
 		slog.Error("failed to create container", "err", err)
 		json.Error(w, http.StatusInternalServerError, err.Error())
 		return

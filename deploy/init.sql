@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS nodes (
     cpu_cores INT NOT NULL,
     ram INT NOT NULL,
     disk_space INT NOT NULL,
+    total_vcpu INT NOT NULL DEFAULT 4,
+    total_ram_mb INT NOT NULL DEFAULT 4096,
+    total_disk_gb INT NOT NULL DEFAULT 100,
     cpu_price NUMERIC(10,2) NOT NULL DEFAULT 14,
     ram_price NUMERIC(10,2) NOT NULL DEFAULT 9,
     disk_price NUMERIC(10,2) NOT NULL DEFAULT 0.6,
@@ -117,3 +120,18 @@ CREATE TABLE IF NOT EXISTS snapshots (
 
 CREATE INDEX idx_snapshots_user ON snapshots(user_id);
 CREATE INDEX idx_snapshots_public ON snapshots(is_public) WHERE is_public = true;
+
+CREATE TABLE IF NOT EXISTS public_ips (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    node_id UUID NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    container_id UUID,
+    price_monthly NUMERIC(10,2) NOT NULL DEFAULT 5,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_pip_node FOREIGN KEY (node_id) REFERENCES nodes(node_id) ON DELETE CASCADE,
+    CONSTRAINT fk_pip_container FOREIGN KEY (container_id) REFERENCES containers(container_id) ON DELETE SET NULL,
+    CONSTRAINT unique_public_ip UNIQUE (ip_address)
+);
+
+CREATE INDEX idx_public_ips_node ON public_ips(node_id);
+CREATE INDEX idx_public_ips_container ON public_ips(container_id);

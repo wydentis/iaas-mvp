@@ -233,9 +233,29 @@ export interface Node {
   cpu_cores: number;
   ram: number;
   disk_space: number;
+  total_vcpu: number;
+  total_ram_mb: number;
+  total_disk_gb: number;
   cpu_price: number;
   ram_price: number;
   disk_price: number;
+  // Dynamic fields from ListNodesWithResources
+  used_cpu: number;
+  used_ram_mb: number;
+  used_disk_gb: number;
+  dyn_cpu_price: number;
+  dyn_ram_price: number;
+  dyn_disk_price: number;
+  public_ips_free: number;
+}
+
+export interface PublicIP {
+  id: string;
+  node_id: string;
+  ip_address: string;
+  container_id: string | null;
+  price_monthly: number;
+  created_at: string;
 }
 
 export interface PortMapping {
@@ -702,6 +722,43 @@ export function createAiChatSocket(): WebSocket {
 export async function clearChatHistory(): Promise<void> {
   try {
     await api.delete("/ai/chat", { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+// ── Public IP endpoints ──────────────────────────────────────────────────────
+
+export async function listFreePublicIPs(nodeId: string): Promise<PublicIP[]> {
+  try {
+    const { data } = await api.get<PublicIP[]>(`/nodes/${nodeId}/public-ips`);
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function assignPublicIP(containerId: string, ipId: string): Promise<PublicIP> {
+  try {
+    const { data } = await api.post<PublicIP>(`/vps/${containerId}/public-ip`, { ip_id: ipId }, { headers: authHeaders() });
+    return data;
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function releasePublicIP(containerId: string): Promise<void> {
+  try {
+    await api.delete(`/vps/${containerId}/public-ip`, { headers: authHeaders() });
+  } catch (err) {
+    throw new Error(extractMessage(err));
+  }
+}
+
+export async function getContainerPublicIP(containerId: string): Promise<PublicIP | null> {
+  try {
+    const { data } = await api.get<PublicIP | null>(`/vps/${containerId}/public-ip`, { headers: authHeaders() });
+    return data;
   } catch (err) {
     throw new Error(extractMessage(err));
   }

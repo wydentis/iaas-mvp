@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
 
 	"github.com/wydentis/iaas-mvp/api/internal/models"
 	"github.com/wydentis/iaas-mvp/api/internal/repo"
@@ -10,19 +12,37 @@ import (
 )
 
 var (
-	ErrUnauthorized = errors.New("unauthorized")
+	ErrUnauthorized      = errors.New("unauthorized")
+	ErrInsufficientFunds = errors.New("insufficient balance")
+	ErrNodeFull          = errors.New("node has no available resources")
 )
 
 type ContainerService struct {
-	Repo  repo.ContainerRepository
-	Nodes *NodeManager
+	Repo     repo.ContainerRepository
+	Nodes    *NodeManager
+	NodeRepo *repo.NodeRepository
+	UserRepo *repo.UserRepository
 }
 
-func NewContainerService(r repo.ContainerRepository, nm *NodeManager) *ContainerService {
-	return &ContainerService{r, nm}
+func NewContainerService(r repo.ContainerRepository, nm *NodeManager, nr *repo.NodeRepository, ur *repo.UserRepository) *ContainerService {
+	return &ContainerService{r, nm, nr, ur}
 }
 
 func (s *ContainerService) CreateContainer(ctx context.Context, userID string, req models.CreateContainerRequest) (*models.Container, error) {
+	// Calculate dynamic price and check balance
+	cost, err := s.calculateCost(ctx, req.NodeID, int(req.CPU), int(req.RAM), int(req.Disk))
+	if err != nil {
+		return nil, err
+	}
+
+	balance, err := s.UserRepo.GetBalance(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if balance.Amount < cost {
+		return nil, fmt.Errorf("%w: need %d BYN, have %d BYN", ErrInsufficientFunds, cost, balance.Amount)
+	}
+
 	conn, err := s.Nodes.GetConnection(req.NodeID)
 	if err != nil {
 		return nil, err
@@ -45,11 +65,11 @@ func (s *ContainerService) CreateContainer(ctx context.Context, userID string, r
 
 	client := node.NewNodeServiceClient(conn)
 	resp, err := client.CreateVPS(ctx, &node.CreateRequest{
-		Id:      container.ID,
-		Image:   container.Image,
-		Cpu:     container.CPU,
-		Ram:     container.RAM,
-		Storage: container.Disk,
+		Id:          container.ID,
+		Image:       container.Image,
+		Cpu:         container.CPU,
+		Ram:         container.RAM,
+		Storage:     container.Disk,
 		StartScript: req.StartScript,
 	})
 	if err != nil {
@@ -59,14 +79,43 @@ func (s *ContainerService) CreateContainer(ctx context.Context, userID string, r
 		return nil, errors.New(resp.ErrorMessage)
 	}
 
+	// Deduct balance
+	if err := s.UserRepo.ChangeBalance(ctx, userID, -cost); err != nil {
+		// Container already created on node — log but don't fail
+	}
+
 	container.IPAddress = resp.Ipv4
 
 	if err := s.Repo.UpdateContainerNetwork(ctx, container.ID, resp.Ipv4); err != nil {
 		// Log error but don't fail the request as the container is created
-		// In a real system we might want a background job to sync state
 	}
 
 	return container, nil
+}
+
+// calculateCost computes the monthly cost using dynamic pricing.
+func (s *ContainerService) calculateCost(ctx context.Context, nodeID string, cpu, ramMB, diskGB int) (int, error) {
+	nodes, err := s.NodeRepo.ListNodesWithResources(ctx)
+	if err != nil {
+		return 0, err
+	}
+	for _, n := range nodes {
+		if n.ID != nodeID {
+			continue
+		}
+		// Check capacity
+		if n.UsedCPU+cpu > n.TotalVCPU || n.UsedRAM+ramMB > n.TotalRAM || n.UsedDisk+diskGB > n.TotalDisk {
+			return 0, ErrNodeFull
+		}
+		cpuRatio := safeRatio(n.UsedCPU, n.TotalVCPU)
+		ramRatio := safeRatio(n.UsedRAM, n.TotalRAM)
+		diskRatio := safeRatio(n.UsedDisk, n.TotalDisk)
+		cpuCost := float64(cpu) * n.CPUPrice * (1 + cpuRatio)
+		ramCost := float64(ramMB) / 1024.0 * n.RAMPrice * (1 + ramRatio)
+		diskCost := float64(diskGB) * n.DiskPrice * (1 + diskRatio)
+		return int(math.Ceil(cpuCost + ramCost + diskCost)), nil
+	}
+	return 0, errors.New("node not found")
 }
 
 func (s *ContainerService) GetContainer(ctx context.Context, userID, role, containerID string) (*models.Container, error) {
