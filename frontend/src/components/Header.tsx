@@ -66,6 +66,12 @@ export default function Header() {
             >
               Маркетплейс
             </Link>
+            <Link
+              to="/about"
+              className="rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
+            >
+              О себе
+            </Link>
           </nav>
         )}
       </div>
@@ -158,6 +164,12 @@ export default function Header() {
             className="whitespace-nowrap rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
           >
             Маркетплейс
+          </Link>
+          <Link
+            to="/about"
+            className="whitespace-nowrap rounded-lg px-3 py-2 transition hover:bg-red-50 hover:text-[#B42124]"
+          >
+            О себе
           </Link>
           {isAdmin && (
             <Link

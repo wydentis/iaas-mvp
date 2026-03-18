@@ -1,4 +1,20 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: iaas-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - iaas-network
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     container_name: iaas-postgres
